@@ -128,6 +128,10 @@ function update() {
 
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   ctx.fillStyle = "blue";
+
+  if (isButtonDown(input.action)) {
+    ctx.fillStyle = "yellow";
+  }
   ctx.fillRect(input.mouseX, input.mouseY, 10, 10);
   //ctx.ellipse(input.mouseX, input.mouseY, 5, 5, 0, 0, 2 * Math.PI);
   prevTime = now;
