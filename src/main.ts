@@ -1,45 +1,19 @@
-//game constants
-const SUIT_HEARTS = 1;
-const SUIT_DIAMONDS = 2;
-const SUIT_SPADES = 3;
-const SUIT_CLUBS = 4;
 
-const RANK_6 = 1;
-const RANK_7 = 2;
-const RANK_8 = 3;
-const RANK_9 = 4;
-const RANK_10 = 5;
-const RANK_J = 6;
-const RANK_Q = 7;
-const RANK_K = 9;
-const RANK_A = 10;
+import {Suit, Rank} from "./game_constants"
 
-//size in pixels
-const SCREEN_WIDTH = 800;
-const SCREEN_HEIGHT = 600;
-
-function Card(suit, rank) {
-  this.suit = suit;
-  this.rank = rank;
+type Card = {
+  suit: Suit,
+  rank: Rank,
 }
 
+
 function createDeck() {
-  const result = [];
-  const suits = [SUIT_HEARTS, SUIT_DIAMONDS, SUIT_SPADES, SUIT_CLUBS];
-  const ranks = [
-    RANK_6,
-    RANK_7,
-    RANK_8,
-    RANK_9,
-    RANK_10,
-    RANK_J,
-    RANK_Q,
-    RANK_K,
-    RANK_A,
-  ];
-  for (const suit of suits) {
-    for (const rank of ranks) {
-      result.push(new Card(suit, rank));
+  const result : Card[] = [];
+  
+  for (const suit of Object.values(Suit)) {
+    for (const rank of Object.values(Rank)) {
+      const card : Card = {suit, rank};
+      result.push(card);
     }
   }
 
@@ -52,11 +26,22 @@ function createDeck() {
 }
 
 //global variables
-const canvas = document.getElementById("gameCanvas");
-const ctx = canvas.getContext("2d");
+const canvas = document.getElementById("gameCanvas") as HTMLCanvasElement;
+const ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
 let prevTime = 0;
 
-const input = {
+type Button = {
+  isDown: boolean,
+  isChanged: boolean,
+}
+
+type Input = {
+  mouseX: number,
+  mouseY: number,
+  action: Button,
+}
+
+const input: Input = {
   mouseX: 0,
   mouseY: 0,
   action: {
@@ -65,31 +50,31 @@ const input = {
   },
 };
 
-function processInputState(button, isDown) {
+function processInputState(button: Button, isDown: boolean) {
   if (button.isDown !== isDown) {
     button.isDown = isDown;
-    button.changed = true;
+    button.isChanged = true;
   }
 }
 
-function processMouse(button, isDown) {
+function processMouse(button: number, isDown: boolean) {
   //left mouse click
   if (button === 0) {
     processInputState(input.action, isDown);
   }
 }
 
-function handleMouseUp(e) {
+function handleMouseUp(e: MouseEvent) {
   const button = e.button;
   processMouse(button, false);
 }
 
-function handleMouseDown(e) {
+function handleMouseDown(e: MouseEvent) {
   const button = e.button;
   processMouse(button, true);
 }
 
-function handleMouseMove(e) {
+function handleMouseMove(e: MouseEvent) {
   if (canvas !== null) {
     const rect = canvas.getBoundingClientRect();
     input.mouseX = e.clientX - rect.left;
@@ -98,17 +83,17 @@ function handleMouseMove(e) {
   }
 }
 
-function isButtonDown(button) {
+function isButtonDown(button: Button) {
   const result = button.isDown;
   return result;
 }
 
-function isButtonPressed(button) {
-  const result = button.isDown && button.changed;
+function isButtonPressed(button: Button) {
+  const result = button.isDown && button.isChanged;
   return result;
 }
 
-function isButtonReleased(button) {
+function isButtonReleased(button: Button) {
   const result = !button.isDown && button.isChanged;
   return result;
 }
