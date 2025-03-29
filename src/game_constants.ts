@@ -20,6 +20,13 @@ export const Rank = {
   RANK_A: 10,
 } as const;
 
+export const Phase = {
+  PHASE_ATTACK: 1,
+  PHASE_DEFEND: 2,
+} as const;
+
+export type Phase = (typeof Phase)[keyof typeof Phase];
+
 export type Rank = (typeof Rank)[keyof typeof Rank];
 
 //size in pixels

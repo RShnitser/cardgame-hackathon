@@ -4,6 +4,7 @@ import {
   CARD_WIDTH,
   CARD_HEIGHT,
   SCREEN_WIDTH,
+  Phase,
 } from "./game_constants";
 
 type Card = {
@@ -62,10 +63,12 @@ function createDeck() {
 //global variables
 const canvas = document.getElementById("gameCanvas") as HTMLCanvasElement;
 const ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
-let prevTime = 0;
+//let prevTime = 0;
 const state: GameState = {
   deck: [],
+  phase: Phase.PHASE_ATTACK,
   playerOneHand: [],
+  playerTwoHand: [],
 };
 
 type Button = {
@@ -90,7 +93,9 @@ const input: Input = {
 
 type GameState = {
   deck: Card[];
+  phase: Phase;
   playerOneHand: Card[];
+  playerTwoHand: Card[];
 };
 
 function processInputState(button: Button, isDown: boolean) {
@@ -131,15 +136,15 @@ function isButtonDown(button: Button) {
   return result;
 }
 
-function isButtonPressed(button: Button) {
-  const result = button.isDown && button.isChanged;
-  return result;
-}
+// function isButtonPressed(button: Button) {
+//   const result = button.isDown && button.isChanged;
+//   return result;
+// }
 
-function isButtonReleased(button: Button) {
-  const result = !button.isDown && button.isChanged;
-  return result;
-}
+// function isButtonReleased(button: Button) {
+//   const result = !button.isDown && button.isChanged;
+//   return result;
+// }
 
 function drawCards(hand: Card[], deck: Card[], amount: number) {
   amount = Math.min(amount, deck.length);
@@ -203,8 +208,8 @@ function renderCard(card: Card) {
   ctx.strokeRect(card.x, card.y, CARD_WIDTH, CARD_HEIGHT);
 }
 function update() {
-  const now = performance.now();
-  const deltaTime = (now - prevTime) * 0.001;
+  //const now = performance.now();
+  //const deltaTime = (now - prevTime) * 0.001;
 
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   ctx.fillStyle = "grey";
@@ -247,7 +252,7 @@ function update() {
     renderCard(card);
   }
   //ctx.ellipse(input.mouseX, input.mouseY, 5, 5, 0, 0, 2 * Math.PI);
-  prevTime = now;
+  //prevTime = now;
   window.requestAnimationFrame(update);
 }
 
