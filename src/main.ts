@@ -1,16 +1,52 @@
-import { Suit, Rank } from "./game_constants";
+import {
+  Suit,
+  Rank,
+  CARD_WIDTH,
+  CARD_HEIGHT,
+  SCREEN_WIDTH,
+} from "./game_constants";
 
 type Card = {
+  x: number;
+  y: number;
+  hovered: boolean;
+  selected: boolean;
   suit: Suit;
   rank: Rank;
 };
+
+const suitMap = new Map<Suit, string>([
+  [Suit.CLUBS, "♣"],
+  [Suit.HEARTS, "♥"],
+  [Suit.DIAMONDS, "♦"],
+  [Suit.SPADES, "♠"],
+]);
+
+const rankMap = new Map<Rank, string>([
+  [Rank.RANK_6, "6"],
+  [Rank.RANK_7, "7"],
+  [Rank.RANK_8, "8"],
+  [Rank.RANK_9, "9"],
+  [Rank.RANK_10, "10"],
+  [Rank.RANK_J, "J"],
+  [Rank.RANK_Q, "Q"],
+  [Rank.RANK_K, "K"],
+  [Rank.RANK_A, "A"],
+]);
 
 function createDeck() {
   const result: Card[] = [];
 
   for (const suit of Object.values(Suit)) {
     for (const rank of Object.values(Rank)) {
-      const card: Card = { suit, rank };
+      const card: Card = {
+        x: 0,
+        y: 0,
+        hovered: false,
+        selected: false,
+        suit,
+        rank,
+      };
       result.push(card);
     }
   }
@@ -120,12 +156,52 @@ function main() {
   window.addEventListener("mouseup", handleMouseUp);
   window.addEventListener("mousemove", handleMouseMove);
 
+  ctx.font = "28px sans-serif";
+
   state.deck = createDeck();
   drawCards(state.playerOneHand, state.deck, 6);
 
   window.requestAnimationFrame(update);
 }
 
+function isPointInRect(
+  pointX: number,
+  pointY: number,
+  rectX: number,
+  rectY: number,
+  rectW: number,
+  rectH: number
+) {
+  if (
+    pointX > rectX &&
+    pointX < rectX + rectW &&
+    pointY > rectY &&
+    pointY < rectY + rectH
+  ) {
+    return true;
+  }
+  return false;
+}
+
+function renderCard(card: Card) {
+  if (card.hovered) {
+    ctx.fillStyle = "yellow";
+  } else {
+    ctx.fillStyle = "white";
+  }
+  ctx.fillRect(card.x, card.y, CARD_WIDTH, CARD_HEIGHT);
+  if (card.suit === Suit.CLUBS || card.suit === Suit.SPADES) {
+    ctx.fillStyle = "black";
+  } else {
+    ctx.fillStyle = "red";
+  }
+  const suitString = suitMap.get(card.suit) as string;
+  const rankString = rankMap.get(card.rank) as string;
+  ctx.fillText(suitString, card.x + 5, card.y + 20);
+  ctx.fillText(rankString, card.x + 15, card.y + 45);
+  ctx.strokeStyle = "black";
+  ctx.strokeRect(card.x, card.y, CARD_WIDTH, CARD_HEIGHT);
+}
 function update() {
   const now = performance.now();
   const deltaTime = (now - prevTime) * 0.001;
@@ -140,9 +216,35 @@ function update() {
   }
   ctx.fillRect(input.mouseX, input.mouseY, 10, 10);
 
-  ctx.fillStyle = "white";
-  for (let i = 0; i < state.playerOneHand.length; i++) {
-    ctx.fillRect(i * 100, 50, 50, 100);
+  const handSize = state.playerOneHand.length;
+  const y = 500;
+  const spaceBetweenCards = 5;
+  const totalWidth = handSize * CARD_WIDTH + spaceBetweenCards * (handSize - 1);
+  const startX = (SCREEN_WIDTH - totalWidth) * 0.5;
+
+  for (let i = 0; i < handSize; i++) {
+    const card = state.playerOneHand[i];
+    card.x = startX + i * (CARD_WIDTH + spaceBetweenCards);
+    card.y = y;
+    if (
+      isPointInRect(
+        input.mouseX,
+        input.mouseY,
+        card.x,
+        card.y,
+        CARD_WIDTH,
+        CARD_HEIGHT
+      )
+    ) {
+      card.hovered = true;
+    } else {
+      card.hovered = false;
+    }
+    //renderCard(card);
+  }
+
+  for (const card of state.playerOneHand) {
+    renderCard(card);
   }
   //ctx.ellipse(input.mouseX, input.mouseY, 5, 5, 0, 0, 2 * Math.PI);
   prevTime = now;
