@@ -53,8 +53,8 @@ function createDeck() {
     }
   }
 
-  for (let i = result.length - 1; i > 1; i--) {
-    const j = Math.floor(Math.random() * i);
+  for (let i = result.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
     [result[i], result[j]] = [result[j], result[i]];
   }
 
@@ -71,6 +71,7 @@ const state: GameState = {
   trump: Suit.CLUBS,
   playerOneHand: [],
   playerTwoHand: [],
+  log: [],
 };
 
 type Button = {
@@ -99,6 +100,7 @@ type GameState = {
   trump: Suit;
   playerOneHand: Card[];
   playerTwoHand: Card[];
+  log: string[];
 };
 
 function processInputState(button: Button, isDown: boolean) {
@@ -159,7 +161,7 @@ function drawCards(hand: Card[], deck: Card[], amount: number) {
   }
 }
 
-function reshuffleCheck(hand: Card[]) {
+function shouldReshuffleDeck(hand: Card[]) {
   const suitCount = new Map<Suit, number>([
     [Suit.CLUBS, 0],
     [Suit.DIAMONDS, 0],
@@ -210,7 +212,7 @@ function dealCards(state: GameState) {
     let lowestTrumpTwo: Rank | null = null;
 
     for (const card of state.playerOneHand) {
-      if ((card.suit = state.trump)) {
+      if (card.suit === state.trump) {
         if (lowestTrumpOne === null || card.rank < lowestTrumpOne) {
           lowestTrumpOne = card.rank;
         }
@@ -218,7 +220,7 @@ function dealCards(state: GameState) {
     }
 
     for (const card of state.playerTwoHand) {
-      if ((card.suit = state.trump)) {
+      if (card.suit === state.trump) {
         if (lowestTrumpTwo === null || card.rank < lowestTrumpTwo) {
           lowestTrumpTwo = card.rank;
         }
@@ -236,12 +238,16 @@ function dealCards(state: GameState) {
     }
 
     if (
-      !reshuffleCheck(state.playerOneHand) &&
-      !reshuffleCheck(state.playerTwoHand)
+      !shouldReshuffleDeck(state.playerOneHand) &&
+      !shouldReshuffleDeck(state.playerTwoHand)
     ) {
       break;
     }
   }
+}
+
+function log(state: GameState, message: string) {
+  state.log.push(message);
 }
 
 function main() {
@@ -252,6 +258,11 @@ function main() {
   ctx.font = "28px sans-serif";
 
   dealCards(state);
+  if (state.phase === Phase.PHASE_ATTACK) {
+    log(state, "Attacking");
+  } else {
+    log(state, "Defending");
+  }
 
   window.requestAnimationFrame(update);
 }
