@@ -5,6 +5,7 @@ import {
   CARD_HEIGHT,
   SCREEN_WIDTH,
   Phase,
+  SCREEN_HEIGHT,
 } from "./game_constants";
 
 type Card = {
@@ -168,6 +169,7 @@ function main() {
   state.deck = createDeck();
   state.trump = state.deck[0].suit;
   drawCards(state.playerOneHand, state.deck, 6);
+  drawCards(state.playerTwoHand, state.deck, 6);
 
   window.requestAnimationFrame(update);
 }
@@ -215,8 +217,8 @@ function renderDeck(deck: Card[]) {
   const trump = deck[0];
   ctx.fillStyle = "white";
   const trumpX = 600;
-  const trumpY = 300;
-  ctx.fillRect(600, 300, CARD_HEIGHT, CARD_WIDTH);
+  const trumpY = SCREEN_HEIGHT * 0.5 - CARD_WIDTH * 0.5;
+  ctx.fillRect(trumpX, trumpY, CARD_HEIGHT, CARD_WIDTH);
   if (trump.suit === Suit.CLUBS || trump.suit === Suit.SPADES) {
     ctx.fillStyle = "black";
   } else {
@@ -229,7 +231,7 @@ function renderDeck(deck: Card[]) {
 
   ctx.fillStyle = "blue";
   const deckX = 630;
-  const deckY = 290;
+  const deckY = SCREEN_HEIGHT * 0.5 - CARD_HEIGHT * 0.5;
   ctx.fillRect(deckX, deckY, CARD_WIDTH, CARD_HEIGHT);
   ctx.strokeStyle = "black";
   ctx.strokeRect(deckX, deckY, CARD_WIDTH, CARD_HEIGHT);
@@ -252,16 +254,18 @@ function update() {
   }
   ctx.fillRect(input.mouseX, input.mouseY, 10, 10);
 
-  const handSize = state.playerOneHand.length;
-  const y = 500;
   const spaceBetweenCards = 5;
-  const totalWidth = handSize * CARD_WIDTH + spaceBetweenCards * (handSize - 1);
-  const startX = (SCREEN_WIDTH - totalWidth) * 0.5;
 
-  for (let i = 0; i < handSize; i++) {
+  const handSizeP1 = state.playerOneHand.length;
+  const yP1 = 500;
+  const totalWidthP1 =
+    handSizeP1 * CARD_WIDTH + spaceBetweenCards * (handSizeP1 - 1);
+  const startXP1 = (SCREEN_WIDTH - totalWidthP1) * 0.5;
+
+  for (let i = 0; i < handSizeP1; i++) {
     const card = state.playerOneHand[i];
-    card.x = startX + i * (CARD_WIDTH + spaceBetweenCards);
-    card.y = y;
+    card.x = startXP1 + i * (CARD_WIDTH + spaceBetweenCards);
+    card.y = yP1;
     if (
       isPointInRect(
         input.mouseX,
@@ -279,11 +283,21 @@ function update() {
     renderCard(card);
   }
 
+  const handSizeP2 = state.playerOneHand.length;
+  const yP2 = 30;
+  const totalWidthP2 =
+    handSizeP2 * CARD_WIDTH + spaceBetweenCards * (handSizeP2 - 1);
+  const startXP2 = (SCREEN_WIDTH - totalWidthP2) * 0.5;
+
+  for (let i = 0; i < handSizeP2; i++) {
+    const card = state.playerTwoHand[i];
+    card.x = startXP2 + i * (CARD_WIDTH + spaceBetweenCards);
+    card.y = yP2;
+    renderCard(card);
+  }
+
   renderDeck(state.deck);
-  // for (const card of state.playerOneHand) {
-  //   renderCard(card);
-  // }
-  //ctx.ellipse(input.mouseX, input.mouseY, 5, 5, 0, 0, 2 * Math.PI);
+
   //prevTime = now;
   window.requestAnimationFrame(update);
 }
