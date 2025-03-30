@@ -67,6 +67,7 @@ const ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
 const state: GameState = {
   deck: [],
   phase: Phase.PHASE_ATTACK,
+  trump: Suit.CLUBS,
   playerOneHand: [],
   playerTwoHand: [],
 };
@@ -94,6 +95,7 @@ const input: Input = {
 type GameState = {
   deck: Card[];
   phase: Phase;
+  trump: Suit;
   playerOneHand: Card[];
   playerTwoHand: Card[];
 };
@@ -164,6 +166,7 @@ function main() {
   ctx.font = "28px sans-serif";
 
   state.deck = createDeck();
+  state.trump = state.deck[0].suit;
   drawCards(state.playerOneHand, state.deck, 6);
 
   window.requestAnimationFrame(update);
@@ -207,6 +210,34 @@ function renderCard(card: Card) {
   ctx.strokeStyle = "black";
   ctx.strokeRect(card.x, card.y, CARD_WIDTH, CARD_HEIGHT);
 }
+
+function renderDeck(deck: Card[]) {
+  const trump = deck[0];
+  ctx.fillStyle = "white";
+  const trumpX = 600;
+  const trumpY = 300;
+  ctx.fillRect(600, 300, CARD_HEIGHT, CARD_WIDTH);
+  if (trump.suit === Suit.CLUBS || trump.suit === Suit.SPADES) {
+    ctx.fillStyle = "black";
+  } else {
+    ctx.fillStyle = "red";
+  }
+  const suitString = suitMap.get(trump.suit) as string;
+  const rankString = rankMap.get(trump.rank) as string;
+  ctx.fillText(suitString, trumpX + 5, trumpY + 20);
+  ctx.fillText(rankString, trumpX + 5, trumpY + 45);
+
+  ctx.fillStyle = "blue";
+  const deckX = 630;
+  const deckY = 290;
+  ctx.fillRect(deckX, deckY, CARD_WIDTH, CARD_HEIGHT);
+  ctx.strokeStyle = "black";
+  ctx.strokeRect(deckX, deckY, CARD_WIDTH, CARD_HEIGHT);
+
+  ctx.fillStyle = "white";
+  ctx.fillText(`${deck.length}`, deckX + 10, deckY + 45);
+}
+
 function update() {
   //const now = performance.now();
   //const deltaTime = (now - prevTime) * 0.001;
@@ -245,12 +276,13 @@ function update() {
     } else {
       card.hovered = false;
     }
-    //renderCard(card);
-  }
-
-  for (const card of state.playerOneHand) {
     renderCard(card);
   }
+
+  renderDeck(state.deck);
+  // for (const card of state.playerOneHand) {
+  //   renderCard(card);
+  // }
   //ctx.ellipse(input.mouseX, input.mouseY, 5, 5, 0, 0, 2 * Math.PI);
   //prevTime = now;
   window.requestAnimationFrame(update);
