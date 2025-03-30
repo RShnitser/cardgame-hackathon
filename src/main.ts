@@ -159,6 +159,91 @@ function drawCards(hand: Card[], deck: Card[], amount: number) {
   }
 }
 
+function reshuffleCheck(hand: Card[]) {
+  const suitCount = new Map<Suit, number>([
+    [Suit.CLUBS, 0],
+    [Suit.DIAMONDS, 0],
+    [Suit.HEARTS, 0],
+    [Suit.SPADES, 0],
+  ]);
+
+  for (const card of hand) {
+    const count = suitCount.get(card.suit) as number;
+    suitCount.set(card.suit, count + 1);
+  }
+
+  for (const count of suitCount.values()) {
+    if (count >= 5) {
+      return true;
+    }
+  }
+
+  if (
+    (suitCount.get(Suit.CLUBS) as number) +
+      (suitCount.get(Suit.SPADES) as number) ===
+    6
+  ) {
+    return true;
+  }
+
+  if (
+    (suitCount.get(Suit.HEARTS) as number) +
+      (suitCount.get(Suit.DIAMONDS) as number) ===
+    6
+  ) {
+    return true;
+  }
+
+  return false;
+}
+
+function dealCards(state: GameState) {
+  while (true) {
+    state.deck = createDeck();
+    state.playerOneHand = [];
+    state.playerTwoHand = [];
+    state.trump = state.deck[0].suit;
+    drawCards(state.playerOneHand, state.deck, 6);
+    drawCards(state.playerTwoHand, state.deck, 6);
+
+    let lowestTrumpOne: Rank | null = null;
+    let lowestTrumpTwo: Rank | null = null;
+
+    for (const card of state.playerOneHand) {
+      if ((card.suit = state.trump)) {
+        if (lowestTrumpOne === null || card.rank < lowestTrumpOne) {
+          lowestTrumpOne = card.rank;
+        }
+      }
+    }
+
+    for (const card of state.playerTwoHand) {
+      if ((card.suit = state.trump)) {
+        if (lowestTrumpTwo === null || card.rank < lowestTrumpTwo) {
+          lowestTrumpTwo = card.rank;
+        }
+      }
+    }
+
+    if (lowestTrumpOne === null && lowestTrumpTwo !== null) {
+      state.phase = Phase.PHASE_DEFEND;
+    }
+
+    if (lowestTrumpOne !== null && lowestTrumpTwo !== null) {
+      if (lowestTrumpTwo < lowestTrumpOne) {
+        state.phase = Phase.PHASE_DEFEND;
+      }
+    }
+
+    if (
+      !reshuffleCheck(state.playerOneHand) &&
+      !reshuffleCheck(state.playerTwoHand)
+    ) {
+      break;
+    }
+  }
+}
+
 function main() {
   window.addEventListener("mousedown", handleMouseDown);
   window.addEventListener("mouseup", handleMouseUp);
@@ -166,10 +251,7 @@ function main() {
 
   ctx.font = "28px sans-serif";
 
-  state.deck = createDeck();
-  state.trump = state.deck[0].suit;
-  drawCards(state.playerOneHand, state.deck, 6);
-  drawCards(state.playerTwoHand, state.deck, 6);
+  dealCards(state);
 
   window.requestAnimationFrame(update);
 }
