@@ -35,3 +35,22 @@ export const SCREEN_HEIGHT = 600;
 
 export const CARD_WIDTH = 50;
 export const CARD_HEIGHT = 70;
+
+export const suitMap = new Map<Suit, string>([
+  [Suit.CLUBS, "♣"],
+  [Suit.HEARTS, "♥"],
+  [Suit.DIAMONDS, "♦"],
+  [Suit.SPADES, "♠"],
+]);
+
+export const rankMap = new Map<Rank, string>([
+  [Rank.RANK_6, "6"],
+  [Rank.RANK_7, "7"],
+  [Rank.RANK_8, "8"],
+  [Rank.RANK_9, "9"],
+  [Rank.RANK_10, "10"],
+  [Rank.RANK_J, "J"],
+  [Rank.RANK_Q, "Q"],
+  [Rank.RANK_K, "K"],
+  [Rank.RANK_A, "A"],
+]);
