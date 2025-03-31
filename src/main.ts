@@ -8,14 +8,7 @@ import {
   SCREEN_HEIGHT,
 } from "./game_constants";
 
-type Card = {
-  x: number;
-  y: number;
-  hovered: boolean;
-  selected: boolean;
-  suit: Suit;
-  rank: Rank;
-};
+import { Card, GameState, Input, Button } from "./game_types";
 
 const suitMap = new Map<Suit, string>([
   [Suit.CLUBS, "♣"],
@@ -71,18 +64,13 @@ const state: GameState = {
   trump: Suit.CLUBS,
   playerOneHand: [],
   playerTwoHand: [],
+  currentAttack: null,
+  bout: [],
+  selectedCards: [],
   log: [],
-};
 
-type Button = {
-  isDown: boolean;
-  isChanged: boolean;
-};
-
-type Input = {
-  mouseX: number;
-  mouseY: number;
-  action: Button;
+  hoveredCard: null,
+  selectedCard: null,
 };
 
 const input: Input = {
@@ -92,15 +80,6 @@ const input: Input = {
     isDown: false,
     isChanged: false,
   },
-};
-
-type GameState = {
-  deck: Card[];
-  phase: Phase;
-  trump: Suit;
-  playerOneHand: Card[];
-  playerTwoHand: Card[];
-  log: string[];
 };
 
 function processInputState(button: Button, isDown: boolean) {
