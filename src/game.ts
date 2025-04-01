@@ -1,4 +1,4 @@
-import { Card, Button, GameState } from "./game_types";
+import { Card, Button, GameState, Attack } from "./game_types";
 import { Suit, Rank, Phase } from "./game_constants";
 
 function createDeck() {
@@ -134,4 +134,14 @@ export function dealCards(state: GameState) {
       break;
     }
   }
+}
+
+function createAttack(state: GameState, card: Card) {
+  state.selectedCards.push(card.rank);
+
+  const attack: Attack = {
+    attack: card,
+    defense: null,
+  };
+  state.currentAttack = attack;
 }
