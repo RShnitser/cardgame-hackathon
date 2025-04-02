@@ -21,8 +21,10 @@ export const Rank = {
 } as const;
 
 export const Phase = {
-  PHASE_ATTACK: 1,
-  PHASE_DEFEND: 2,
+  PHASE_P1_ATTACK: 1,
+  PHASE_P1_DEFEND: 2,
+  PHASE_P2_ATTACK: 3,
+  PHASE_P2_DEFEND: 4,
 } as const;
 
 export type Phase = (typeof Phase)[keyof typeof Phase];

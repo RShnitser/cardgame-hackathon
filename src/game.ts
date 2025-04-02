@@ -1,4 +1,4 @@
-import { Card, Button, GameState, Attack } from "./game_types";
+import { Card, Button, GameState, Attack, Input } from "./game_types";
 import { Suit, Rank, Phase } from "./game_constants";
 
 function createDeck() {
@@ -118,12 +118,12 @@ export function dealCards(state: GameState) {
     }
 
     if (lowestTrumpOne === null && lowestTrumpTwo !== null) {
-      state.phase = Phase.PHASE_DEFEND;
+      state.phase = Phase.PHASE_P2_ATTACK;
     }
 
     if (lowestTrumpOne !== null && lowestTrumpTwo !== null) {
       if (lowestTrumpTwo < lowestTrumpOne) {
-        state.phase = Phase.PHASE_DEFEND;
+        state.phase = Phase.PHASE_P2_ATTACK;
       }
     }
 
@@ -136,7 +136,28 @@ export function dealCards(state: GameState) {
   }
 }
 
-function createAttack(state: GameState, card: Card) {
+export function createDefense(state: GameState, card: Card) {
+  if (state.currentAttack === null) {
+    return;
+  }
+
+  if (
+    card.suit === state.trump &&
+    state.currentAttack.attack.suit !== state.trump
+  ) {
+    state.currentAttack.defense = card;
+    return;
+  }
+
+  if (
+    card.suit === state.currentAttack.attack.suit &&
+    card.rank > state.currentAttack.attack.rank
+  ) {
+    state.currentAttack.defense = card;
+  }
+}
+
+export function createAttack(state: GameState, card: Card) {
   state.selectedCards.push(card.rank);
 
   const attack: Attack = {
@@ -145,3 +166,5 @@ function createAttack(state: GameState, card: Card) {
   };
   state.currentAttack = attack;
 }
+
+export function gameUpdate(state: GameState, input: Input) {}

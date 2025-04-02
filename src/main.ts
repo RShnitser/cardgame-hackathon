@@ -10,7 +10,7 @@ import {
 } from "./game_constants";
 
 import { Card, GameState, Input, Button } from "./game_types";
-import { dealCards, isButtonDown } from "./game";
+import { createAttack, dealCards, isButtonDown } from "./game";
 
 //global variables
 const canvas = document.getElementById("gameCanvas") as HTMLCanvasElement;
@@ -18,7 +18,7 @@ const ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
 //let prevTime = 0;
 const state: GameState = {
   deck: [],
-  phase: Phase.PHASE_ATTACK,
+  phase: Phase.PHASE_P1_ATTACK,
   trump: Suit.CLUBS,
   playerOneHand: [],
   playerTwoHand: [],
@@ -85,11 +85,11 @@ function main() {
   ctx.font = "28px sans-serif";
 
   dealCards(state);
-  if (state.phase === Phase.PHASE_ATTACK) {
-    log(state, "Attacking");
-  } else {
-    log(state, "Defending");
-  }
+  // if (state.phase === Phase.PHASE_ATTACK) {
+  //   log(state, "Attacking");
+  // } else {
+  //   log(state, "Defending");
+  // }
 
   window.requestAnimationFrame(update);
 }
@@ -160,6 +160,20 @@ function renderDeck(deck: Card[]) {
   ctx.fillText(`${deck.length}`, deckX + 10, deckY + 45);
 }
 
+function performCardAction(state: GameState, card: Card) {
+  switch (state.phase) {
+    case Phase.PHASE_P1_ATTACK:
+      if (
+        state.selectedCards.length === 0 ||
+        !state.selectedCards.includes(card.rank)
+      ) {
+        createAttack(state, card);
+        state.phase = Phase.PHASE_P2_DEFEND;
+      }
+      break;
+  }
+}
+
 function update() {
   //const now = performance.now();
   //const deltaTime = (now - prevTime) * 0.001;
@@ -167,12 +181,12 @@ function update() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   ctx.fillStyle = "grey";
   ctx.fillRect(0, 0, 800, 600);
-  ctx.fillStyle = "blue";
+  // ctx.fillStyle = "blue";
 
-  if (isButtonDown(input.action)) {
-    ctx.fillStyle = "yellow";
-  }
-  ctx.fillRect(input.mouseX, input.mouseY, 10, 10);
+  // if (isButtonDown(input.action)) {
+  //   ctx.fillStyle = "yellow";
+  // }
+  // ctx.fillRect(input.mouseX, input.mouseY, 10, 10);
 
   const spaceBetweenCards = 5;
 
@@ -197,6 +211,9 @@ function update() {
       )
     ) {
       card.hovered = true;
+      if (isButtonDown(input.action)) {
+        performCardAction(state, card);
+      }
     } else {
       card.hovered = false;
     }
