@@ -1,5 +1,32 @@
 import { Card, Button, GameState, Attack, Input } from "./game_types";
-import { Suit, Rank, Phase } from "./game_constants";
+import {
+  Suit,
+  Rank,
+  Phase,
+  CARD_WIDTH,
+  SCREEN_WIDTH,
+  CARD_HEIGHT,
+} from "./game_constants";
+import { renderCard, renderDeck } from "./renderer";
+
+function isPointInRect(
+  pointX: number,
+  pointY: number,
+  rectX: number,
+  rectY: number,
+  rectW: number,
+  rectH: number
+) {
+  if (
+    pointX > rectX &&
+    pointX < rectX + rectW &&
+    pointY > rectY &&
+    pointY < rectY + rectH
+  ) {
+    return true;
+  }
+  return false;
+}
 
 function createDeck() {
   const result: Card[] = [];
@@ -26,7 +53,7 @@ function createDeck() {
   return result;
 }
 
-export function isButtonDown(button: Button) {
+function isButtonDown(button: Button) {
   const result = button.isDown;
   return result;
 }
@@ -89,7 +116,7 @@ function shouldReshuffleDeck(hand: Card[]) {
   return false;
 }
 
-export function dealCards(state: GameState) {
+function dealCards(state: GameState) {
   while (true) {
     state.deck = createDeck();
     state.playerOneHand = [];
@@ -136,7 +163,7 @@ export function dealCards(state: GameState) {
   }
 }
 
-export function createDefense(state: GameState, card: Card) {
+function createDefense(state: GameState, card: Card) {
   if (state.currentAttack === null) {
     return;
   }
@@ -157,7 +184,7 @@ export function createDefense(state: GameState, card: Card) {
   }
 }
 
-export function createAttack(state: GameState, card: Card) {
+function createAttack(state: GameState, card: Card) {
   state.selectedCards.push(card.rank);
 
   const attack: Attack = {
@@ -167,4 +194,73 @@ export function createAttack(state: GameState, card: Card) {
   state.currentAttack = attack;
 }
 
-export function gameUpdate(state: GameState, input: Input) {}
+function performCardAction(state: GameState, card: Card) {
+  switch (state.phase) {
+    case Phase.PHASE_P1_ATTACK:
+      if (
+        state.selectedCards.length === 0 ||
+        !state.selectedCards.includes(card.rank)
+      ) {
+        createAttack(state, card);
+        state.phase = Phase.PHASE_P2_DEFEND;
+      }
+      break;
+  }
+}
+
+export function gameInitialize(state: GameState) {
+  dealCards(state);
+}
+
+export function gameUpdate(
+  ctx: CanvasRenderingContext2D,
+  state: GameState,
+  input: Input
+) {
+  const spaceBetweenCards = 5;
+
+  const handSizeP1 = state.playerOneHand.length;
+  const yP1 = 500;
+  const totalWidthP1 =
+    handSizeP1 * CARD_WIDTH + spaceBetweenCards * (handSizeP1 - 1);
+  const startXP1 = (SCREEN_WIDTH - totalWidthP1) * 0.5;
+
+  for (let i = 0; i < handSizeP1; i++) {
+    const card = state.playerOneHand[i];
+    card.x = startXP1 + i * (CARD_WIDTH + spaceBetweenCards);
+    card.y = yP1;
+    if (
+      isPointInRect(
+        input.mouseX,
+        input.mouseY,
+        card.x,
+        card.y,
+        CARD_WIDTH,
+        CARD_HEIGHT
+      )
+    ) {
+      card.hovered = true;
+      if (isButtonDown(input.action)) {
+        performCardAction(state, card);
+      }
+    } else {
+      card.hovered = false;
+    }
+    renderCard(ctx, card);
+  }
+
+  const handSizeP2 = state.playerOneHand.length;
+  const yP2 = 30;
+  const totalWidthP2 =
+    handSizeP2 * CARD_WIDTH + spaceBetweenCards * (handSizeP2 - 1);
+  const startXP2 = (SCREEN_WIDTH - totalWidthP2) * 0.5;
+
+  for (let i = 0; i < handSizeP2; i++) {
+    const card = state.playerTwoHand[i];
+    card.x = startXP2 + i * (CARD_WIDTH + spaceBetweenCards);
+    card.y = yP2;
+    renderCard(ctx, card);
+  }
+
+  renderDeck(ctx, state.deck);
+}

@@ -1,16 +1,6 @@
-import {
-  Suit,
-  CARD_WIDTH,
-  CARD_HEIGHT,
-  SCREEN_WIDTH,
-  Phase,
-  SCREEN_HEIGHT,
-  rankMap,
-  suitMap,
-} from "./game_constants";
-
-import { Card, GameState, Input, Button } from "./game_types";
-import { createAttack, dealCards, isButtonDown } from "./game";
+import { gameUpdate, gameInitialize } from "./game";
+import { Suit, Phase } from "./game_constants";
+import { GameState, Input, Button } from "./game_types";
 
 //global variables
 const canvas = document.getElementById("gameCanvas") as HTMLCanvasElement;
@@ -73,9 +63,9 @@ function handleMouseMove(e: MouseEvent) {
   }
 }
 
-function log(state: GameState, message: string) {
-  state.log.push(message);
-}
+// function log(state: GameState, message: string) {
+//   state.log.push(message);
+// }
 
 function main() {
   window.addEventListener("mousedown", handleMouseDown);
@@ -84,7 +74,7 @@ function main() {
 
   ctx.font = "28px sans-serif";
 
-  dealCards(state);
+  gameInitialize(state);
   // if (state.phase === Phase.PHASE_ATTACK) {
   //   log(state, "Attacking");
   // } else {
@@ -92,86 +82,6 @@ function main() {
   // }
 
   window.requestAnimationFrame(update);
-}
-
-function isPointInRect(
-  pointX: number,
-  pointY: number,
-  rectX: number,
-  rectY: number,
-  rectW: number,
-  rectH: number
-) {
-  if (
-    pointX > rectX &&
-    pointX < rectX + rectW &&
-    pointY > rectY &&
-    pointY < rectY + rectH
-  ) {
-    return true;
-  }
-  return false;
-}
-
-function renderCard(card: Card) {
-  if (card.hovered) {
-    ctx.fillStyle = "yellow";
-  } else {
-    ctx.fillStyle = "white";
-  }
-  ctx.fillRect(card.x, card.y, CARD_WIDTH, CARD_HEIGHT);
-  if (card.suit === Suit.CLUBS || card.suit === Suit.SPADES) {
-    ctx.fillStyle = "black";
-  } else {
-    ctx.fillStyle = "red";
-  }
-  const suitString = suitMap.get(card.suit) as string;
-  const rankString = rankMap.get(card.rank) as string;
-  ctx.fillText(suitString, card.x + 5, card.y + 20);
-  ctx.fillText(rankString, card.x + 15, card.y + 45);
-  ctx.strokeStyle = "black";
-  ctx.strokeRect(card.x, card.y, CARD_WIDTH, CARD_HEIGHT);
-}
-
-function renderDeck(deck: Card[]) {
-  const trump = deck[0];
-  ctx.fillStyle = "white";
-  const trumpX = 600;
-  const trumpY = SCREEN_HEIGHT * 0.5 - CARD_WIDTH * 0.5;
-  ctx.fillRect(trumpX, trumpY, CARD_HEIGHT, CARD_WIDTH);
-  if (trump.suit === Suit.CLUBS || trump.suit === Suit.SPADES) {
-    ctx.fillStyle = "black";
-  } else {
-    ctx.fillStyle = "red";
-  }
-  const suitString = suitMap.get(trump.suit) as string;
-  const rankString = rankMap.get(trump.rank) as string;
-  ctx.fillText(suitString, trumpX + 5, trumpY + 20);
-  ctx.fillText(rankString, trumpX + 5, trumpY + 45);
-
-  ctx.fillStyle = "blue";
-  const deckX = 630;
-  const deckY = SCREEN_HEIGHT * 0.5 - CARD_HEIGHT * 0.5;
-  ctx.fillRect(deckX, deckY, CARD_WIDTH, CARD_HEIGHT);
-  ctx.strokeStyle = "black";
-  ctx.strokeRect(deckX, deckY, CARD_WIDTH, CARD_HEIGHT);
-
-  ctx.fillStyle = "white";
-  ctx.fillText(`${deck.length}`, deckX + 10, deckY + 45);
-}
-
-function performCardAction(state: GameState, card: Card) {
-  switch (state.phase) {
-    case Phase.PHASE_P1_ATTACK:
-      if (
-        state.selectedCards.length === 0 ||
-        !state.selectedCards.includes(card.rank)
-      ) {
-        createAttack(state, card);
-        state.phase = Phase.PHASE_P2_DEFEND;
-      }
-      break;
-  }
 }
 
 function update() {
@@ -183,57 +93,58 @@ function update() {
   ctx.fillRect(0, 0, 800, 600);
   // ctx.fillStyle = "blue";
 
+  gameUpdate(ctx, state, input);
   // if (isButtonDown(input.action)) {
   //   ctx.fillStyle = "yellow";
   // }
   // ctx.fillRect(input.mouseX, input.mouseY, 10, 10);
 
-  const spaceBetweenCards = 5;
+  // const spaceBetweenCards = 5;
 
-  const handSizeP1 = state.playerOneHand.length;
-  const yP1 = 500;
-  const totalWidthP1 =
-    handSizeP1 * CARD_WIDTH + spaceBetweenCards * (handSizeP1 - 1);
-  const startXP1 = (SCREEN_WIDTH - totalWidthP1) * 0.5;
+  // const handSizeP1 = state.playerOneHand.length;
+  // const yP1 = 500;
+  // const totalWidthP1 =
+  //   handSizeP1 * CARD_WIDTH + spaceBetweenCards * (handSizeP1 - 1);
+  // const startXP1 = (SCREEN_WIDTH - totalWidthP1) * 0.5;
 
-  for (let i = 0; i < handSizeP1; i++) {
-    const card = state.playerOneHand[i];
-    card.x = startXP1 + i * (CARD_WIDTH + spaceBetweenCards);
-    card.y = yP1;
-    if (
-      isPointInRect(
-        input.mouseX,
-        input.mouseY,
-        card.x,
-        card.y,
-        CARD_WIDTH,
-        CARD_HEIGHT
-      )
-    ) {
-      card.hovered = true;
-      if (isButtonDown(input.action)) {
-        performCardAction(state, card);
-      }
-    } else {
-      card.hovered = false;
-    }
-    renderCard(card);
-  }
+  // for (let i = 0; i < handSizeP1; i++) {
+  //   const card = state.playerOneHand[i];
+  //   card.x = startXP1 + i * (CARD_WIDTH + spaceBetweenCards);
+  //   card.y = yP1;
+  //   if (
+  //     isPointInRect(
+  //       input.mouseX,
+  //       input.mouseY,
+  //       card.x,
+  //       card.y,
+  //       CARD_WIDTH,
+  //       CARD_HEIGHT
+  //     )
+  //   ) {
+  //     card.hovered = true;
+  //     if (isButtonDown(input.action)) {
+  //       performCardAction(state, card);
+  //     }
+  //   } else {
+  //     card.hovered = false;
+  //   }
+  //   renderCard(ctx, card);
+  // }
 
-  const handSizeP2 = state.playerOneHand.length;
-  const yP2 = 30;
-  const totalWidthP2 =
-    handSizeP2 * CARD_WIDTH + spaceBetweenCards * (handSizeP2 - 1);
-  const startXP2 = (SCREEN_WIDTH - totalWidthP2) * 0.5;
+  // const handSizeP2 = state.playerOneHand.length;
+  // const yP2 = 30;
+  // const totalWidthP2 =
+  //   handSizeP2 * CARD_WIDTH + spaceBetweenCards * (handSizeP2 - 1);
+  // const startXP2 = (SCREEN_WIDTH - totalWidthP2) * 0.5;
 
-  for (let i = 0; i < handSizeP2; i++) {
-    const card = state.playerTwoHand[i];
-    card.x = startXP2 + i * (CARD_WIDTH + spaceBetweenCards);
-    card.y = yP2;
-    renderCard(card);
-  }
+  // for (let i = 0; i < handSizeP2; i++) {
+  //   const card = state.playerTwoHand[i];
+  //   card.x = startXP2 + i * (CARD_WIDTH + spaceBetweenCards);
+  //   card.y = yP2;
+  //   renderCard(ctx, card);
+  // }
 
-  renderDeck(state.deck);
+  // renderDeck(ctx, state.deck);
 
   //prevTime = now;
   window.requestAnimationFrame(update);
