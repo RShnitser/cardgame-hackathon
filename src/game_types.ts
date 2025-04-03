@@ -12,10 +12,6 @@ export type Input = {
 };
 
 export type Card = {
-  x: number;
-  y: number;
-  hovered: boolean;
-  selected: boolean;
   suit: Suit;
   rank: Rank;
 };
@@ -36,6 +32,8 @@ export type GameState = {
   selectedCards: Rank[];
   log: string[];
 
-  hoveredCard: Card | null;
-  selectedCard: Card | null;
+  //UI
+  idCounter: number;
+  hotItem: number;
+  activeItem: number;
 };

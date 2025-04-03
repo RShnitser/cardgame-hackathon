@@ -8,13 +8,26 @@ import {
   SCREEN_HEIGHT,
 } from "./game_constants";
 
-export function renderCard(ctx: CanvasRenderingContext2D, card: Card) {
-  if (card.hovered) {
-    ctx.fillStyle = "yellow";
-  } else {
-    ctx.fillStyle = "white";
-  }
-  ctx.fillRect(card.x, card.y, CARD_WIDTH, CARD_HEIGHT);
+export function renderClear(
+  ctx: CanvasRenderingContext2D,
+  width: number,
+  height: number,
+  color: string
+) {
+  ctx.clearRect(0, 0, width, height);
+  ctx.fillStyle = color;
+  ctx.fillRect(0, 0, width, height);
+}
+
+export function renderCard(
+  ctx: CanvasRenderingContext2D,
+  card: Card,
+  x: number,
+  y: number,
+  color: string
+) {
+  ctx.fillStyle = color;
+  ctx.fillRect(x, y, CARD_WIDTH, CARD_HEIGHT);
   if (card.suit === Suit.CLUBS || card.suit === Suit.SPADES) {
     ctx.fillStyle = "black";
   } else {
@@ -22,10 +35,10 @@ export function renderCard(ctx: CanvasRenderingContext2D, card: Card) {
   }
   const suitString = suitMap.get(card.suit) as string;
   const rankString = rankMap.get(card.rank) as string;
-  ctx.fillText(suitString, card.x + 5, card.y + 20);
-  ctx.fillText(rankString, card.x + 15, card.y + 45);
+  ctx.fillText(suitString, x + 5, y + 20);
+  ctx.fillText(rankString, x + 15, y + 45);
   ctx.strokeStyle = "black";
-  ctx.strokeRect(card.x, card.y, CARD_WIDTH, CARD_HEIGHT);
+  ctx.strokeRect(x, y, CARD_WIDTH, CARD_HEIGHT);
 }
 
 export function renderDeck(ctx: CanvasRenderingContext2D, deck: Card[]) {

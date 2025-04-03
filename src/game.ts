@@ -8,8 +8,9 @@ import {
   CARD_HEIGHT,
 } from "./game_constants";
 import { renderCard, renderDeck } from "./renderer";
+import { UICreateCardButton } from "./ui";
 
-function isPointInRect(
+export function isPointInRect(
   pointX: number,
   pointY: number,
   rectX: number,
@@ -34,10 +35,6 @@ function createDeck() {
   for (const suit of Object.values(Suit)) {
     for (const rank of Object.values(Rank)) {
       const card: Card = {
-        x: 0,
-        y: 0,
-        hovered: false,
-        selected: false,
         suit,
         rank,
       };
@@ -218,49 +215,36 @@ export function gameUpdate(
   input: Input
 ) {
   const spaceBetweenCards = 5;
-
   const handSizeP1 = state.playerOneHand.length;
   const yP1 = 500;
   const totalWidthP1 =
     handSizeP1 * CARD_WIDTH + spaceBetweenCards * (handSizeP1 - 1);
   const startXP1 = (SCREEN_WIDTH - totalWidthP1) * 0.5;
-
   for (let i = 0; i < handSizeP1; i++) {
     const card = state.playerOneHand[i];
-    card.x = startXP1 + i * (CARD_WIDTH + spaceBetweenCards);
-    card.y = yP1;
     if (
-      isPointInRect(
-        input.mouseX,
-        input.mouseY,
-        card.x,
-        card.y,
-        CARD_WIDTH,
-        CARD_HEIGHT
+      UICreateCardButton(
+        ctx,
+        state,
+        input,
+        card,
+        startXP1 + i * (CARD_WIDTH + spaceBetweenCards),
+        yP1
       )
     ) {
-      card.hovered = true;
-      if (isButtonDown(input.action)) {
-        performCardAction(state, card);
-      }
-    } else {
-      card.hovered = false;
+      //console.log(card);
     }
-    renderCard(ctx, card);
   }
-
   const handSizeP2 = state.playerOneHand.length;
   const yP2 = 30;
   const totalWidthP2 =
     handSizeP2 * CARD_WIDTH + spaceBetweenCards * (handSizeP2 - 1);
   const startXP2 = (SCREEN_WIDTH - totalWidthP2) * 0.5;
-
   for (let i = 0; i < handSizeP2; i++) {
     const card = state.playerTwoHand[i];
-    card.x = startXP2 + i * (CARD_WIDTH + spaceBetweenCards);
-    card.y = yP2;
-    renderCard(ctx, card);
+    const cx = startXP2 + i * (CARD_WIDTH + spaceBetweenCards);
+    const cy = yP2;
+    renderCard(ctx, card, cx, cy, "white");
   }
-
   renderDeck(ctx, state.deck);
 }
