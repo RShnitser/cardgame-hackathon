@@ -16,7 +16,7 @@ const state: GameState = {
   playerTwoHand: [],
   currentAttack: null,
   bout: [],
-  selectedCards: [],
+  selectedCards: new Set(),
   log: [],
 
   idCounter: 0,

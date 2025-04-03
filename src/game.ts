@@ -5,6 +5,7 @@ import {
   Phase,
   CARD_WIDTH,
   SCREEN_WIDTH,
+  SCREEN_HEIGHT,
   CARD_HEIGHT,
 } from "./game_constants";
 import { renderCard, renderDeck } from "./renderer";
@@ -37,6 +38,7 @@ function createDeck() {
       const card: Card = {
         suit,
         rank,
+        remove: false,
       };
       result.push(card);
     }
@@ -125,31 +127,31 @@ function dealCards(state: GameState) {
     let lowestTrumpOne: Rank | null = null;
     let lowestTrumpTwo: Rank | null = null;
 
-    for (const card of state.playerOneHand) {
-      if (card.suit === state.trump) {
-        if (lowestTrumpOne === null || card.rank < lowestTrumpOne) {
-          lowestTrumpOne = card.rank;
-        }
-      }
-    }
+    // for (const card of state.playerOneHand) {
+    //   if (card.suit === state.trump) {
+    //     if (lowestTrumpOne === null || card.rank < lowestTrumpOne) {
+    //       lowestTrumpOne = card.rank;
+    //     }
+    //   }
+    // }
 
-    for (const card of state.playerTwoHand) {
-      if (card.suit === state.trump) {
-        if (lowestTrumpTwo === null || card.rank < lowestTrumpTwo) {
-          lowestTrumpTwo = card.rank;
-        }
-      }
-    }
+    // for (const card of state.playerTwoHand) {
+    //   if (card.suit === state.trump) {
+    //     if (lowestTrumpTwo === null || card.rank < lowestTrumpTwo) {
+    //       lowestTrumpTwo = card.rank;
+    //     }
+    //   }
+    // }
 
-    if (lowestTrumpOne === null && lowestTrumpTwo !== null) {
-      state.phase = Phase.PHASE_P2_ATTACK;
-    }
+    // if (lowestTrumpOne === null && lowestTrumpTwo !== null) {
+    //   state.phase = Phase.PHASE_P2_ATTACK;
+    // }
 
-    if (lowestTrumpOne !== null && lowestTrumpTwo !== null) {
-      if (lowestTrumpTwo < lowestTrumpOne) {
-        state.phase = Phase.PHASE_P2_ATTACK;
-      }
-    }
+    // if (lowestTrumpOne !== null && lowestTrumpTwo !== null) {
+    //   if (lowestTrumpTwo < lowestTrumpOne) {
+    //     state.phase = Phase.PHASE_P2_ATTACK;
+    //   }
+    // }
 
     if (
       !shouldReshuffleDeck(state.playerOneHand) &&
@@ -182,24 +184,39 @@ function createDefense(state: GameState, card: Card) {
 }
 
 function createAttack(state: GameState, card: Card) {
-  state.selectedCards.push(card.rank);
+  state.selectedCards.add(card.rank);
 
   const attack: Attack = {
     attack: card,
     defense: null,
   };
+  state.bout.push(attack);
   state.currentAttack = attack;
+}
+
+function isValidRank(state: GameState, rank: Rank) {
+  if (state.selectedCards.size === 0) {
+    return true;
+  }
+
+  return state.selectedCards.has(rank);
+}
+
+function removeCardFromHand(hand: Card[]) {
+  const result = hand.filter(function (card) {
+    return !card.remove;
+  });
+  return result;
 }
 
 function performCardAction(state: GameState, card: Card) {
   switch (state.phase) {
     case Phase.PHASE_P1_ATTACK:
-      if (
-        state.selectedCards.length === 0 ||
-        !state.selectedCards.includes(card.rank)
-      ) {
+      if (isValidRank(state, card.rank) && state.bout.length < 6) {
+        //state.playerOneHand = removeCardFromHand(state.playerOneHand, card);
+        card.remove = true;
         createAttack(state, card);
-        state.phase = Phase.PHASE_P2_DEFEND;
+        //state.phase = Phase.PHASE_P2_DEFEND;
       }
       break;
   }
@@ -233,6 +250,7 @@ export function gameUpdate(
       )
     ) {
       //console.log(card);
+      performCardAction(state, card);
     }
   }
   const handSizeP2 = state.playerOneHand.length;
@@ -246,5 +264,27 @@ export function gameUpdate(
     const cy = yP2;
     renderCard(ctx, card, cx, cy, "white");
   }
+
+  const boutSize = state.bout.length;
+  const boutY = SCREEN_HEIGHT * 0.5 - CARD_WIDTH * 0.5;
+  const totalBoutWidth =
+    boutSize * CARD_WIDTH + spaceBetweenCards * (boutSize - 1);
+  const startBoutX = (SCREEN_WIDTH - totalBoutWidth) * 0.5;
+  for (let i = 0; i < state.bout.length; i++) {
+    const attackCard = state.bout[i].attack;
+    const defenseCard = state.bout[i].defense;
+    renderCard(
+      ctx,
+      attackCard,
+      startBoutX + i * (CARD_WIDTH + spaceBetweenCards),
+      boutY,
+      "white"
+    );
+    if (defenseCard !== null) {
+    }
+  }
+
   renderDeck(ctx, state.deck);
+
+  state.playerOneHand = removeCardFromHand(state.playerOneHand);
 }

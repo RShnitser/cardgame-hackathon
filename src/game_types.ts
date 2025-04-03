@@ -14,6 +14,7 @@ export type Input = {
 export type Card = {
   suit: Suit;
   rank: Rank;
+  remove: boolean;
 };
 
 export type Attack = {
@@ -29,7 +30,7 @@ export type GameState = {
   playerTwoHand: Card[];
   bout: Attack[];
   currentAttack: Attack | null;
-  selectedCards: Rank[];
+  selectedCards: Set<Rank>;
   log: string[];
 
   //UI
