@@ -6,7 +6,6 @@ import {
   CARD_WIDTH,
   SCREEN_WIDTH,
   SCREEN_HEIGHT,
-  CARD_HEIGHT,
 } from "./game_constants";
 import { renderCard, renderDeck } from "./renderer";
 import { UICreateCardButton } from "./ui";
@@ -38,7 +37,6 @@ function createDeck() {
       const card: Card = {
         suit,
         rank,
-        remove: false,
       };
       result.push(card);
     }
@@ -202,11 +200,13 @@ function isValidRank(state: GameState, rank: Rank) {
   return state.selectedCards.has(rank);
 }
 
-function removeCardFromHand(hand: Card[]) {
-  const result = hand.filter(function (card) {
-    return !card.remove;
-  });
-  return result;
+function removeCardFromHand(hand: Card[], card: Card) {
+  // const result = hand.filter(function (currentCard) {
+  //   return !(currentCard.suit === card.suit && currentCard.rank === card.rank);
+  // });
+  // return result;
+  const index = hand.indexOf(card);
+  hand.splice(index, 1);
 }
 
 function performCardAction(state: GameState, card: Card) {
@@ -214,12 +214,25 @@ function performCardAction(state: GameState, card: Card) {
     case Phase.PHASE_P1_ATTACK:
       if (isValidRank(state, card.rank) && state.bout.length < 6) {
         //state.playerOneHand = removeCardFromHand(state.playerOneHand, card);
-        card.remove = true;
+        //card.remove = true;
+        state.events.push({ type: "Discard", card, hand: state.playerOneHand });
         createAttack(state, card);
         //state.phase = Phase.PHASE_P2_DEFEND;
       }
       break;
   }
+}
+
+function performEvent(state: GameState) {
+  for (const event of state.events) {
+    switch (event.type) {
+      case "Discard":
+        console.log("discarding");
+        //event.hand = removeCardFromHand(event.hand, event.card);
+        removeCardFromHand(event.hand, event.card);
+    }
+  }
+  state.events = [];
 }
 
 export function gameInitialize(state: GameState) {
@@ -286,5 +299,6 @@ export function gameUpdate(
 
   renderDeck(ctx, state.deck);
 
-  state.playerOneHand = removeCardFromHand(state.playerOneHand);
+  //state.playerOneHand = removeCardFromHand(state.playerOneHand);
+  performEvent(state);
 }

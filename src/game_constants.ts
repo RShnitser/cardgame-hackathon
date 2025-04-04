@@ -56,3 +56,5 @@ export const rankMap = new Map<Rank, string>([
   [Rank.RANK_K, "K"],
   [Rank.RANK_A, "A"],
 ]);
+
+//export type EventType = (typeof EventType)[keyof typeof EventType];

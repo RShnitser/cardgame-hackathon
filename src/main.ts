@@ -17,7 +17,8 @@ const state: GameState = {
   currentAttack: null,
   bout: [],
   selectedCards: new Set(),
-  log: [],
+  //log: [],
+  events: [],
 
   idCounter: 0,
   hotItem: 0,
