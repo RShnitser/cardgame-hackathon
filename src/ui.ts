@@ -1,7 +1,7 @@
 import { isPointInRect } from "./game";
 import { CARD_HEIGHT, CARD_WIDTH } from "./game_constants";
 import { Card, GameState, Input } from "./game_types";
-import { renderCard } from "./renderer";
+import { renderCard, renderButton } from "./renderer";
 
 export function UIStart(state: GameState) {
   state.idCounter = 0;
@@ -46,6 +46,39 @@ export function UICreateCardButton(
     renderCard(ctx, card, x, y, "yellow");
   } else {
     renderCard(ctx, card, x, y, "white");
+  }
+
+  if (state.hotItem === id && state.activeItem === id && !input.action.isDown) {
+    return true;
+  }
+
+  return false;
+}
+
+export function UICreateTextButton(
+  ctx: CanvasRenderingContext2D,
+  state: GameState,
+  input: Input,
+  text: string,
+  x: number,
+  y: number,
+  width: number,
+  height: number
+) {
+  const id = UIGetID(state);
+  if (
+    isPointInRect(input.mouseX, input.mouseY, x, y, CARD_WIDTH, CARD_HEIGHT)
+  ) {
+    state.hotItem = id;
+    if (state.activeItem === 0 && input.action.isDown) {
+      state.activeItem = id;
+    }
+  }
+
+  if (state.hotItem === id) {
+    renderButton(ctx, text, x, y, "black", "yellow");
+  } else {
+    renderButton(ctx, text, x, y, "black", "white");
   }
 
   if (state.hotItem === id && state.activeItem === id && !input.action.isDown) {

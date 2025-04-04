@@ -67,3 +67,20 @@ export function renderDeck(ctx: CanvasRenderingContext2D, deck: Card[]) {
   ctx.fillStyle = "white";
   ctx.fillText(`${deck.length}`, deckX + 10, deckY + 45);
 }
+
+export function renderButton(
+  ctx: CanvasRenderingContext2D,
+  text: string,
+  x: number,
+  y: number,
+  //width: number,
+  //height: number,
+  textColor: string,
+  backgroundColor: string
+) {
+  ctx.fillStyle = backgroundColor;
+  const measure = ctx.measureText(text);
+  ctx.fillRect(x, y, measure.width + 5, 28 + 5);
+  ctx.fillStyle = textColor;
+  ctx.fillText(text, x + 5, y + 5);
+}
