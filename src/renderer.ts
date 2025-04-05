@@ -88,3 +88,12 @@ export function renderButton(
   ctx.strokeStyle = "black";
   ctx.strokeRect(x, y, measure.width + padding * 2, fontSize + padding * 2);
 }
+
+export function renderSelectRect(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number
+) {
+  ctx.fillStyle = "orange";
+  ctx.fillRect(x - 2, y - 2, CARD_WIDTH + 4, CARD_HEIGHT + 4);
+}

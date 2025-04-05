@@ -7,7 +7,7 @@ import {
   SCREEN_WIDTH,
   SCREEN_HEIGHT,
 } from "./game_constants";
-import { renderCard, renderDeck } from "./renderer";
+import { renderCard, renderDeck, renderSelectRect } from "./renderer";
 import { UICreateCardButton, UICreateTextButton } from "./ui";
 
 export function isPointInRect(
@@ -193,7 +193,7 @@ function createAttack(state: GameState, card: Card) {
     defense: null,
   };
   state.bout.push(attack);
-  state.currentAttack = attack;
+  //state.currentAttack = attack;
 }
 
 function isValidRank(state: GameState, rank: Rank) {
@@ -219,8 +219,17 @@ function checkGameOver(state: GameState, hand: Card[]) {
   }
 }
 
-function attack(state: GameState, card: Card, hand: Card[]) {
-  if (isValidRank(state, card.rank) && state.bout.length < 6) {
+function attack(
+  state: GameState,
+  card: Card,
+  hand: Card[],
+  enemyHandLength: number
+) {
+  if (
+    isValidRank(state, card.rank) &&
+    state.bout.length < 6 &&
+    state.bout.length < enemyHandLength
+  ) {
     state.events.push({ type: "Discard", card, hand });
     createAttack(state, card);
     return true;
@@ -231,35 +240,48 @@ function attack(state: GameState, card: Card, hand: Card[]) {
 function defend(state: GameState, card: Card, hand: Card[]) {
   if (createDefense(state, card)) {
     state.events.push({ type: "Discard", card, hand });
+    state.currentAttack = null;
     return true;
   }
   return false;
+}
+function isDefended(state: GameState) {
+  for (const bout of state.bout) {
+    if (bout.defense === null) {
+      return false;
+    }
+  }
+  return true;
 }
 
 function performCardAction(state: GameState, card: Card) {
   switch (state.phase) {
     case Phase.PHASE_P1_ATTACK:
-      if (attack(state, card, state.playerOneHand)) {
-        state.phase = Phase.PHASE_P2_DEFEND;
+      if (
+        attack(state, card, state.playerOneHand, state.playerTwoHand.length)
+      ) {
+        //state.phase = Phase.PHASE_P2_DEFEND;
       }
       break;
     case Phase.PHASE_P2_DEFEND:
       if (defend(state, card, state.playerTwoHand)) {
         checkGameOver(state, state.playerTwoHand);
-        if (!state.gameOver) {
+        if (!state.gameOver && isDefended(state)) {
           state.phase = Phase.PHASE_P1_ATTACK;
         }
       }
       break;
     case Phase.PHASE_P2_ATTACK:
-      if (attack(state, card, state.playerTwoHand)) {
-        state.phase = Phase.PHASE_P1_DEFEND;
+      if (
+        attack(state, card, state.playerTwoHand, state.playerOneHand.length)
+      ) {
+        //state.phase = Phase.PHASE_P1_DEFEND;
       }
       break;
     case Phase.PHASE_P1_DEFEND:
       if (defend(state, card, state.playerOneHand)) {
         checkGameOver(state, state.playerOneHand);
-        if (!state.gameOver) {
+        if (!state.gameOver && isDefended(state)) {
           state.phase = Phase.PHASE_P2_ATTACK;
         }
       }
@@ -340,12 +362,32 @@ export function gameUpdate(
 
   if (state.phase === Phase.PHASE_P1_ATTACK) {
     if (
-      UICreateTextButton(ctx, state, input, "Pass", SCREEN_WIDTH * 0.5, 500, 10)
+      UICreateTextButton(
+        ctx,
+        state,
+        input,
+        "Continue",
+        SCREEN_WIDTH * 0.5,
+        500,
+        10
+      )
     ) {
-      discardBouts(state);
-      state.phase = Phase.PHASE_P2_ATTACK;
-      state.selectedCards.clear();
-      //draw cards player 2
+      let isDefended = true;
+      for (const bout of state.bout) {
+        if (bout.defense === null) {
+          isDefended = false;
+          break;
+        }
+      }
+      if (isDefended) {
+        discardBouts(state);
+        state.phase = Phase.PHASE_P2_ATTACK;
+        state.selectedCards.clear();
+        state.currentAttack = null;
+        //draw cards player 2
+      } else {
+        state.phase = Phase.PHASE_P2_DEFEND;
+      }
     }
   }
 
@@ -390,13 +432,41 @@ export function gameUpdate(
   for (let i = 0; i < state.bout.length; i++) {
     const attackCard = state.bout[i].attack;
     const defenseCard = state.bout[i].defense;
-    renderCard(
-      ctx,
-      attackCard,
-      startBoutX + i * (CARD_WIDTH + spaceBetweenCards),
-      boutY,
-      "white"
-    );
+
+    if (state.bout[i] === state.currentAttack) {
+      renderSelectRect(
+        ctx,
+        startBoutX + i * (CARD_WIDTH + spaceBetweenCards),
+        boutY
+      );
+    }
+
+    if (
+      (state.phase === Phase.PHASE_P1_DEFEND ||
+        state.phase === Phase.PHASE_P2_DEFEND) &&
+      state.bout[i].defense === null
+    ) {
+      if (
+        UICreateCardButton(
+          ctx,
+          state,
+          input,
+          attackCard,
+          startBoutX + i * (CARD_WIDTH + spaceBetweenCards),
+          boutY
+        )
+      ) {
+        state.currentAttack = state.bout[i];
+      }
+    } else {
+      renderCard(
+        ctx,
+        attackCard,
+        startBoutX + i * (CARD_WIDTH + spaceBetweenCards),
+        boutY,
+        "white"
+      );
+    }
     if (defenseCard !== null) {
       renderCard(
         ctx,
@@ -410,12 +480,32 @@ export function gameUpdate(
 
   if (state.phase === Phase.PHASE_P2_ATTACK) {
     if (
-      UICreateTextButton(ctx, state, input, "Pass", SCREEN_WIDTH * 0.5, 50, 10)
+      UICreateTextButton(
+        ctx,
+        state,
+        input,
+        "Continue",
+        SCREEN_WIDTH * 0.5,
+        50,
+        10
+      )
     ) {
-      discardBouts(state);
-      state.phase = Phase.PHASE_P1_ATTACK;
-      state.selectedCards.clear();
-      //draw cards player1
+      let isDefended = true;
+      for (const bout of state.bout) {
+        if (bout.defense === null) {
+          isDefended = false;
+          break;
+        }
+      }
+      if (isDefended) {
+        discardBouts(state);
+        state.phase = Phase.PHASE_P1_ATTACK;
+        state.selectedCards.clear();
+        state.currentAttack = null;
+        //draw cards player1
+      } else {
+        state.phase = Phase.PHASE_P1_DEFEND;
+      }
     }
   }
 
