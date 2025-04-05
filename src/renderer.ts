@@ -75,12 +75,16 @@ export function renderButton(
   y: number,
   //width: number,
   //height: number,
+  padding: number,
   textColor: string,
   backgroundColor: string
 ) {
+  const fontSize = 28;
   ctx.fillStyle = backgroundColor;
   const measure = ctx.measureText(text);
-  ctx.fillRect(x, y, measure.width + 5, 28 + 5);
+  ctx.fillRect(x, y, measure.width + padding * 2, fontSize + padding * 2);
   ctx.fillStyle = textColor;
-  ctx.fillText(text, x + 5, y + 5);
+  ctx.fillText(text, x + padding, y + fontSize + padding);
+  ctx.strokeStyle = "black";
+  ctx.strokeRect(x, y, measure.width + padding * 2, fontSize + padding * 2);
 }

@@ -8,7 +8,7 @@ import {
   SCREEN_HEIGHT,
 } from "./game_constants";
 import { renderCard, renderDeck } from "./renderer";
-import { UICreateCardButton } from "./ui";
+import { UICreateCardButton, UICreateTextButton } from "./ui";
 
 export function isPointInRect(
   pointX: number,
@@ -162,7 +162,7 @@ function dealCards(state: GameState) {
 
 function createDefense(state: GameState, card: Card) {
   if (state.currentAttack === null) {
-    return;
+    return false;
   }
 
   if (
@@ -170,7 +170,8 @@ function createDefense(state: GameState, card: Card) {
     state.currentAttack.attack.suit !== state.trump
   ) {
     state.currentAttack.defense = card;
-    return;
+    state.selectedCards.add(card.rank);
+    return true;
   }
 
   if (
@@ -178,7 +179,10 @@ function createDefense(state: GameState, card: Card) {
     card.rank > state.currentAttack.attack.rank
   ) {
     state.currentAttack.defense = card;
+    state.selectedCards.add(card.rank);
+    return true;
   }
+  return false;
 }
 
 function createAttack(state: GameState, card: Card) {
@@ -209,15 +213,55 @@ function removeCardFromHand(hand: Card[], card: Card) {
   hand.splice(index, 1);
 }
 
+function checkGameOver(state: GameState, hand: Card[]) {
+  if (state.deck.length === 0 && hand.length === 0) {
+    state.gameOver = true;
+  }
+}
+
+function attack(state: GameState, card: Card, hand: Card[]) {
+  if (isValidRank(state, card.rank) && state.bout.length < 6) {
+    state.events.push({ type: "Discard", card, hand });
+    createAttack(state, card);
+    return true;
+  }
+  return false;
+}
+
+function defend(state: GameState, card: Card, hand: Card[]) {
+  if (createDefense(state, card)) {
+    state.events.push({ type: "Discard", card, hand });
+    return true;
+  }
+  return false;
+}
+
 function performCardAction(state: GameState, card: Card) {
   switch (state.phase) {
     case Phase.PHASE_P1_ATTACK:
-      if (isValidRank(state, card.rank) && state.bout.length < 6) {
-        //state.playerOneHand = removeCardFromHand(state.playerOneHand, card);
-        //card.remove = true;
-        state.events.push({ type: "Discard", card, hand: state.playerOneHand });
-        createAttack(state, card);
-        //state.phase = Phase.PHASE_P2_DEFEND;
+      if (attack(state, card, state.playerOneHand)) {
+        state.phase = Phase.PHASE_P2_DEFEND;
+      }
+      break;
+    case Phase.PHASE_P2_DEFEND:
+      if (defend(state, card, state.playerTwoHand)) {
+        checkGameOver(state, state.playerTwoHand);
+        if (!state.gameOver) {
+          state.phase = Phase.PHASE_P1_ATTACK;
+        }
+      }
+      break;
+    case Phase.PHASE_P2_ATTACK:
+      if (attack(state, card, state.playerTwoHand)) {
+        state.phase = Phase.PHASE_P1_DEFEND;
+      }
+      break;
+    case Phase.PHASE_P1_DEFEND:
+      if (defend(state, card, state.playerOneHand)) {
+        checkGameOver(state, state.playerOneHand);
+        if (!state.gameOver) {
+          state.phase = Phase.PHASE_P2_ATTACK;
+        }
       }
       break;
   }
@@ -227,12 +271,26 @@ function performEvent(state: GameState) {
   for (const event of state.events) {
     switch (event.type) {
       case "Discard":
-        console.log("discarding");
+        //console.log("discarding");
         //event.hand = removeCardFromHand(event.hand, event.card);
         removeCardFromHand(event.hand, event.card);
     }
   }
   state.events = [];
+}
+
+function discardBouts(state: GameState) {
+  state.bout = [];
+}
+
+function acceptBouts(state: GameState, hand: Card[]) {
+  for (const bout of state.bout) {
+    hand.push(bout.attack);
+    if (bout.defense !== null) {
+      hand.push(bout.defense);
+    }
+  }
+  state.bout = [];
 }
 
 export function gameInitialize(state: GameState) {
@@ -246,28 +304,64 @@ export function gameUpdate(
 ) {
   const spaceBetweenCards = 5;
   const handSizeP1 = state.playerOneHand.length;
-  const yP1 = 500;
+  const yP1 = 400;
   const totalWidthP1 =
     handSizeP1 * CARD_WIDTH + spaceBetweenCards * (handSizeP1 - 1);
   const startXP1 = (SCREEN_WIDTH - totalWidthP1) * 0.5;
   for (let i = 0; i < handSizeP1; i++) {
     const card = state.playerOneHand[i];
     if (
-      UICreateCardButton(
+      state.phase === Phase.PHASE_P1_ATTACK ||
+      state.phase === Phase.PHASE_P1_DEFEND
+    ) {
+      if (
+        UICreateCardButton(
+          ctx,
+          state,
+          input,
+          card,
+          startXP1 + i * (CARD_WIDTH + spaceBetweenCards),
+          yP1
+        )
+      ) {
+        //console.log(card);
+        performCardAction(state, card);
+      }
+    } else {
+      renderCard(
         ctx,
-        state,
-        input,
         card,
         startXP1 + i * (CARD_WIDTH + spaceBetweenCards),
-        yP1
-      )
-    ) {
-      //console.log(card);
-      performCardAction(state, card);
+        yP1,
+        "white"
+      );
     }
   }
-  const handSizeP2 = state.playerOneHand.length;
-  const yP2 = 30;
+
+  if (state.phase === Phase.PHASE_P1_ATTACK) {
+    if (
+      UICreateTextButton(ctx, state, input, "Pass", SCREEN_WIDTH * 0.5, 500, 10)
+    ) {
+      discardBouts(state);
+      state.phase = Phase.PHASE_P2_ATTACK;
+      state.selectedCards.clear();
+      //draw cards player 2
+    }
+  }
+
+  if (state.phase === Phase.PHASE_P1_DEFEND) {
+    if (
+      UICreateTextButton(ctx, state, input, "Pass", SCREEN_WIDTH * 0.5, 500, 10)
+    ) {
+      acceptBouts(state, state.playerOneHand);
+      state.phase = Phase.PHASE_P2_ATTACK;
+      state.selectedCards.clear();
+      //draw cards player 2
+    }
+  }
+
+  const handSizeP2 = state.playerTwoHand.length;
+  const yP2 = 130;
   const totalWidthP2 =
     handSizeP2 * CARD_WIDTH + spaceBetweenCards * (handSizeP2 - 1);
   const startXP2 = (SCREEN_WIDTH - totalWidthP2) * 0.5;
@@ -275,7 +369,17 @@ export function gameUpdate(
     const card = state.playerTwoHand[i];
     const cx = startXP2 + i * (CARD_WIDTH + spaceBetweenCards);
     const cy = yP2;
-    renderCard(ctx, card, cx, cy, "white");
+    if (
+      state.phase === Phase.PHASE_P2_ATTACK ||
+      state.phase === Phase.PHASE_P2_DEFEND
+    ) {
+      if (UICreateCardButton(ctx, state, input, card, cx, cy)) {
+        //console.log(card);
+        performCardAction(state, card);
+      }
+    } else {
+      renderCard(ctx, card, cx, cy, "white");
+    }
   }
 
   const boutSize = state.bout.length;
@@ -294,6 +398,35 @@ export function gameUpdate(
       "white"
     );
     if (defenseCard !== null) {
+      renderCard(
+        ctx,
+        defenseCard,
+        startBoutX + i * (CARD_WIDTH + spaceBetweenCards),
+        boutY + 40,
+        "white"
+      );
+    }
+  }
+
+  if (state.phase === Phase.PHASE_P2_ATTACK) {
+    if (
+      UICreateTextButton(ctx, state, input, "Pass", SCREEN_WIDTH * 0.5, 50, 10)
+    ) {
+      discardBouts(state);
+      state.phase = Phase.PHASE_P1_ATTACK;
+      state.selectedCards.clear();
+      //draw cards player1
+    }
+  }
+
+  if (state.phase === Phase.PHASE_P2_DEFEND) {
+    if (
+      UICreateTextButton(ctx, state, input, "Pass", SCREEN_WIDTH * 0.5, 50, 10)
+    ) {
+      acceptBouts(state, state.playerTwoHand);
+      state.phase = Phase.PHASE_P1_ATTACK;
+      state.selectedCards.clear();
+      //draw cards player 1
     }
   }
 

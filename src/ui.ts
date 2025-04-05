@@ -62,8 +62,7 @@ export function UICreateTextButton(
   text: string,
   x: number,
   y: number,
-  width: number,
-  height: number
+  padding: number
 ) {
   const id = UIGetID(state);
   if (
@@ -76,9 +75,9 @@ export function UICreateTextButton(
   }
 
   if (state.hotItem === id) {
-    renderButton(ctx, text, x, y, "black", "yellow");
+    renderButton(ctx, text, x, y, padding, "black", "yellow");
   } else {
-    renderButton(ctx, text, x, y, "black", "white");
+    renderButton(ctx, text, x, y, padding, "black", "white");
   }
 
   if (state.hotItem === id && state.activeItem === id && !input.action.isDown) {

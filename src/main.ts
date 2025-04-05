@@ -9,6 +9,7 @@ const canvas = document.getElementById("gameCanvas") as HTMLCanvasElement;
 const ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
 //let prevTime = 0;
 const state: GameState = {
+  gameOver: false,
   deck: [],
   phase: Phase.PHASE_P1_ATTACK,
   trump: Suit.CLUBS,

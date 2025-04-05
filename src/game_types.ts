@@ -23,6 +23,7 @@ export type Attack = {
 };
 
 export type GameState = {
+  gameOver: boolean;
   deck: Card[];
   phase: Phase;
   trump: Suit;
