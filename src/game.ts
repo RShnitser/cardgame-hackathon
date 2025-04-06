@@ -1,4 +1,4 @@
-import { Card, Button, GameState, Attack, Input } from "./game_types";
+import { Card, GameState, Attack, Input } from "./game_types";
 import {
   Suit,
   Rank,
@@ -50,10 +50,10 @@ function createDeck() {
   return result;
 }
 
-function isButtonDown(button: Button) {
-  const result = button.isDown;
-  return result;
-}
+// function isButtonDown(button: Button) {
+//   const result = button.isDown;
+//   return result;
+// }
 
 // function isButtonPressed(button: Button) {
 //   const result = button.isDown && button.isChanged;
@@ -65,8 +65,11 @@ function isButtonDown(button: Button) {
 //   return result;
 // }
 
-function drawCards(hand: Card[], deck: Card[], amount: number) {
-  amount = Math.min(amount, deck.length);
+function drawCards(hand: Card[], deck: Card[]) {
+  if (hand.length >= 6) {
+    return;
+  }
+  const amount = Math.min(6 - hand.length, deck.length);
   for (let i = 0; i < amount; i++) {
     const card = deck.pop();
     if (card !== undefined) {
@@ -119,37 +122,37 @@ function dealCards(state: GameState) {
     state.playerOneHand = [];
     state.playerTwoHand = [];
     state.trump = state.deck[0].suit;
-    drawCards(state.playerOneHand, state.deck, 6);
-    drawCards(state.playerTwoHand, state.deck, 6);
+    drawCards(state.playerOneHand, state.deck);
+    drawCards(state.playerTwoHand, state.deck);
 
     let lowestTrumpOne: Rank | null = null;
     let lowestTrumpTwo: Rank | null = null;
 
-    // for (const card of state.playerOneHand) {
-    //   if (card.suit === state.trump) {
-    //     if (lowestTrumpOne === null || card.rank < lowestTrumpOne) {
-    //       lowestTrumpOne = card.rank;
-    //     }
-    //   }
-    // }
+    for (const card of state.playerOneHand) {
+      if (card.suit === state.trump) {
+        if (lowestTrumpOne === null || card.rank < lowestTrumpOne) {
+          lowestTrumpOne = card.rank;
+        }
+      }
+    }
 
-    // for (const card of state.playerTwoHand) {
-    //   if (card.suit === state.trump) {
-    //     if (lowestTrumpTwo === null || card.rank < lowestTrumpTwo) {
-    //       lowestTrumpTwo = card.rank;
-    //     }
-    //   }
-    // }
+    for (const card of state.playerTwoHand) {
+      if (card.suit === state.trump) {
+        if (lowestTrumpTwo === null || card.rank < lowestTrumpTwo) {
+          lowestTrumpTwo = card.rank;
+        }
+      }
+    }
 
-    // if (lowestTrumpOne === null && lowestTrumpTwo !== null) {
-    //   state.phase = Phase.PHASE_P2_ATTACK;
-    // }
+    if (lowestTrumpOne === null && lowestTrumpTwo !== null) {
+      state.phase = Phase.PHASE_P2_ATTACK;
+    }
 
-    // if (lowestTrumpOne !== null && lowestTrumpTwo !== null) {
-    //   if (lowestTrumpTwo < lowestTrumpOne) {
-    //     state.phase = Phase.PHASE_P2_ATTACK;
-    //   }
-    // }
+    if (lowestTrumpOne !== null && lowestTrumpTwo !== null) {
+      if (lowestTrumpTwo < lowestTrumpOne) {
+        state.phase = Phase.PHASE_P2_ATTACK;
+      }
+    }
 
     if (
       !shouldReshuffleDeck(state.playerOneHand) &&
@@ -228,7 +231,7 @@ function attack(
   if (
     isValidRank(state, card.rank) &&
     state.bout.length < 6 &&
-    state.bout.length < enemyHandLength
+    enemyHandLength > 0
   ) {
     state.events.push({ type: "Discard", card, hand });
     createAttack(state, card);
@@ -302,7 +305,11 @@ function performEvent(state: GameState) {
 }
 
 function discardBouts(state: GameState) {
+  state.currentAttack = null;
+  state.selectedCards.clear();
   state.bout = [];
+  drawCards(state.playerOneHand, state.deck);
+  drawCards(state.playerTwoHand, state.deck);
 }
 
 function acceptBouts(state: GameState, hand: Card[]) {
@@ -312,7 +319,11 @@ function acceptBouts(state: GameState, hand: Card[]) {
       hand.push(bout.defense);
     }
   }
+  state.selectedCards.clear();
+  state.currentAttack = null;
   state.bout = [];
+  drawCards(state.playerOneHand, state.deck);
+  drawCards(state.playerTwoHand, state.deck);
 }
 
 export function gameInitialize(state: GameState) {
@@ -382,8 +393,9 @@ export function gameUpdate(
       if (isDefended) {
         discardBouts(state);
         state.phase = Phase.PHASE_P2_ATTACK;
-        state.selectedCards.clear();
-        state.currentAttack = null;
+        //state.selectedCards.clear();
+        //state.currentAttack = null;
+        //drawCards(state.playerTwoHand, state.deck);
         //draw cards player 2
       } else {
         state.phase = Phase.PHASE_P2_DEFEND;
@@ -397,7 +409,9 @@ export function gameUpdate(
     ) {
       acceptBouts(state, state.playerOneHand);
       state.phase = Phase.PHASE_P2_ATTACK;
-      state.selectedCards.clear();
+      //state.selectedCards.clear();
+      //state.currentAttack = null;
+      //drawCards(state.playerTwoHand, state.deck);
       //draw cards player 2
     }
   }
@@ -500,8 +514,9 @@ export function gameUpdate(
       if (isDefended) {
         discardBouts(state);
         state.phase = Phase.PHASE_P1_ATTACK;
-        state.selectedCards.clear();
-        state.currentAttack = null;
+        //drawCards(state.playerOneHand, state.deck);
+        //state.selectedCards.clear();
+        //state.currentAttack = null;
         //draw cards player1
       } else {
         state.phase = Phase.PHASE_P1_DEFEND;
@@ -515,12 +530,15 @@ export function gameUpdate(
     ) {
       acceptBouts(state, state.playerTwoHand);
       state.phase = Phase.PHASE_P1_ATTACK;
-      state.selectedCards.clear();
+      //drawCards(state.playerOneHand, state.deck);
+      //state.selectedCards.clear();
       //draw cards player 1
     }
   }
 
-  renderDeck(ctx, state.deck);
+  if (state.deck.length > 0) {
+    renderDeck(ctx, state.deck);
+  }
 
   //state.playerOneHand = removeCardFromHand(state.playerOneHand);
   performEvent(state);
