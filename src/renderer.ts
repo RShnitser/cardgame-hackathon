@@ -41,6 +41,17 @@ export function renderCard(
   ctx.strokeRect(x, y, CARD_WIDTH, CARD_HEIGHT);
 }
 
+export function renderCardBack(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number
+) {
+  ctx.fillStyle = "blue";
+  ctx.fillRect(x, y, CARD_WIDTH, CARD_HEIGHT);
+  ctx.strokeStyle = "black";
+  ctx.strokeRect(x, y, CARD_WIDTH, CARD_HEIGHT);
+}
+
 export function renderDeck(ctx: CanvasRenderingContext2D, deck: Card[]) {
   const trump = deck[0];
   ctx.fillStyle = "white";

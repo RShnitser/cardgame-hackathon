@@ -7,27 +7,13 @@ import {
   SCREEN_WIDTH,
   SCREEN_HEIGHT,
 } from "./game_constants";
-import { renderCard, renderDeck, renderSelectRect } from "./renderer";
+import {
+  renderCard,
+  renderCardBack,
+  renderDeck,
+  renderSelectRect,
+} from "./renderer";
 import { UICreateCardButton, UICreateTextButton } from "./ui";
-
-export function isPointInRect(
-  pointX: number,
-  pointY: number,
-  rectX: number,
-  rectY: number,
-  rectW: number,
-  rectH: number
-) {
-  if (
-    pointX > rectX &&
-    pointX < rectX + rectW &&
-    pointY > rectY &&
-    pointY < rectY + rectH
-  ) {
-    return true;
-  }
-  return false;
-}
 
 function createDeck() {
   const result: Card[] = [];
@@ -361,13 +347,14 @@ export function gameUpdate(
         performCardAction(state, card);
       }
     } else {
-      renderCard(
-        ctx,
-        card,
-        startXP1 + i * (CARD_WIDTH + spaceBetweenCards),
-        yP1,
-        "white"
-      );
+      // renderCard(
+      //   ctx,
+      //   card,
+      //   startXP1 + i * (CARD_WIDTH + spaceBetweenCards),
+      //   yP1,
+      //   "white"
+      // );
+      renderCardBack(ctx, startXP1 + i * (CARD_WIDTH + spaceBetweenCards), yP1);
     }
   }
 
@@ -434,7 +421,8 @@ export function gameUpdate(
         performCardAction(state, card);
       }
     } else {
-      renderCard(ctx, card, cx, cy, "white");
+      //renderCard(ctx, card, cx, cy, "white");
+      renderCardBack(ctx, cx, cy);
     }
   }
 

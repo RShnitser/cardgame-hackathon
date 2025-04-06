@@ -1,4 +1,4 @@
-import { isPointInRect } from "./game";
+//import { isPointInRect } from "./game";
 import { CARD_HEIGHT, CARD_WIDTH } from "./game_constants";
 import { Card, GameState, Input } from "./game_types";
 import { renderCard, renderButton } from "./renderer";
@@ -21,6 +21,25 @@ export function UIEnd(state: GameState, input: Input) {
 function UIGetID(state: GameState) {
   state.idCounter++;
   return state.idCounter;
+}
+
+function isPointInRect(
+  pointX: number,
+  pointY: number,
+  rectX: number,
+  rectY: number,
+  rectW: number,
+  rectH: number
+) {
+  if (
+    pointX > rectX &&
+    pointX < rectX + rectW &&
+    pointY > rectY &&
+    pointY < rectY + rectH
+  ) {
+    return true;
+  }
+  return false;
 }
 
 export function UICreateCardButton(
