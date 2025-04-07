@@ -84,8 +84,6 @@ export function renderButton(
   text: string,
   x: number,
   y: number,
-  //width: number,
-  //height: number,
   padding: number,
   textColor: string,
   backgroundColor: string

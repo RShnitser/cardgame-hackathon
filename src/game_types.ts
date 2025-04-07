@@ -14,7 +14,6 @@ export type Input = {
 export type Card = {
   suit: Suit;
   rank: Rank;
-  //remove: boolean;
 };
 
 export type Attack = {
@@ -32,8 +31,7 @@ export type GameState = {
   bout: Attack[];
   currentAttack: Attack | null;
   selectedCards: Set<Rank>;
-  events: Event[];
-  //log: string[];
+  events: Discard[];
 
   //UI
   idCounter: number;
@@ -41,15 +39,7 @@ export type GameState = {
   activeItem: number;
 };
 
-type EventDiscard = {
-  type: "Discard";
+export type Discard = {
   card: Card;
   hand: Card[];
 };
-
-type EventTakeCards = {
-  type: "Take";
-  hand: Card[];
-};
-
-export type Event = EventDiscard | EventTakeCards;

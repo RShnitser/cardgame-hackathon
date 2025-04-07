@@ -44,21 +44,6 @@ function createDeck() {
   return result;
 }
 
-// function isButtonDown(button: Button) {
-//   const result = button.isDown;
-//   return result;
-// }
-
-// function isButtonPressed(button: Button) {
-//   const result = button.isDown && button.isChanged;
-//   return result;
-// }
-
-// function isButtonReleased(button: Button) {
-//   const result = !button.isDown && button.isChanged;
-//   return result;
-// }
-
 export function resetGame(state: GameState) {
   state.gameOver = false;
   state.selectedCards.clear();
@@ -198,7 +183,6 @@ function createAttack(state: GameState, card: Card) {
     defense: null,
   };
   state.bout.push(attack);
-  //state.currentAttack = attack;
 }
 
 function isValidRank(state: GameState, rank: Rank) {
@@ -210,16 +194,11 @@ function isValidRank(state: GameState, rank: Rank) {
 }
 
 function removeCardFromHand(hand: Card[], card: Card) {
-  // const result = hand.filter(function (currentCard) {
-  //   return !(currentCard.suit === card.suit && currentCard.rank === card.rank);
-  // });
-  // return result;
   const index = hand.indexOf(card);
   hand.splice(index, 1);
 }
 
 function checkGameOver(state: GameState, hand: Card[]) {
-  //console.log("deck: ", state.deck.length, " hand: ", hand.length);
   if (state.deck.length === 0 && hand.length === 0) {
     state.gameOver = true;
     displayGameOver();
@@ -237,7 +216,7 @@ function attack(
     state.bout.length < 6 &&
     enemyHandLength > 0
   ) {
-    state.events.push({ type: "Discard", card, hand });
+    state.events.push({ card, hand });
     createAttack(state, card);
     return true;
   }
@@ -246,7 +225,7 @@ function attack(
 
 function defend(state: GameState, card: Card, hand: Card[]) {
   if (createDefense(state, card)) {
-    state.events.push({ type: "Discard", card, hand });
+    state.events.push({ card, hand });
     state.currentAttack = null;
     return true;
   }
@@ -264,30 +243,20 @@ function isDefended(state: GameState) {
 function performCardAction(state: GameState, card: Card) {
   switch (state.phase) {
     case Phase.PHASE_P1_ATTACK:
-      if (
-        attack(state, card, state.playerOneHand, state.playerTwoHand.length)
-      ) {
-        //state.phase = Phase.PHASE_P2_DEFEND;
-      }
+      attack(state, card, state.playerOneHand, state.playerTwoHand.length);
       break;
     case Phase.PHASE_P2_DEFEND:
       if (defend(state, card, state.playerTwoHand)) {
-        //checkGameOver(state, state.playerTwoHand);
         if (!state.gameOver && isDefended(state)) {
           state.phase = Phase.PHASE_P1_ATTACK;
         }
       }
       break;
     case Phase.PHASE_P2_ATTACK:
-      if (
-        attack(state, card, state.playerTwoHand, state.playerOneHand.length)
-      ) {
-        //state.phase = Phase.PHASE_P1_DEFEND;
-      }
+      attack(state, card, state.playerTwoHand, state.playerOneHand.length);
       break;
     case Phase.PHASE_P1_DEFEND:
       if (defend(state, card, state.playerOneHand)) {
-        //checkGameOver(state, state.playerOneHand);
         if (!state.gameOver && isDefended(state)) {
           state.phase = Phase.PHASE_P2_ATTACK;
         }
@@ -296,14 +265,9 @@ function performCardAction(state: GameState, card: Card) {
   }
 }
 
-function performEvent(state: GameState) {
+function performDiscard(state: GameState) {
   for (const event of state.events) {
-    switch (event.type) {
-      case "Discard":
-        //console.log("discarding");
-        //event.hand = removeCardFromHand(event.hand, event.card);
-        removeCardFromHand(event.hand, event.card);
-    }
+    removeCardFromHand(event.hand, event.card);
   }
   state.events = [];
 }
@@ -361,17 +325,9 @@ export function gameUpdate(
           yP1
         )
       ) {
-        //console.log(card);
         performCardAction(state, card);
       }
     } else {
-      // renderCard(
-      //   ctx,
-      //   card,
-      //   startXP1 + i * (CARD_WIDTH + spaceBetweenCards),
-      //   yP1,
-      //   "white"
-      // );
       renderCardBack(ctx, startXP1 + i * (CARD_WIDTH + spaceBetweenCards), yP1);
     }
   }
@@ -398,10 +354,6 @@ export function gameUpdate(
       if (isDefended) {
         discardBouts(state);
         state.phase = Phase.PHASE_P2_ATTACK;
-        //state.selectedCards.clear();
-        //state.currentAttack = null;
-        //drawCards(state.playerTwoHand, state.deck);
-        //draw cards player 2
       } else {
         state.phase = Phase.PHASE_P2_DEFEND;
       }
@@ -412,13 +364,8 @@ export function gameUpdate(
     if (
       UICreateTextButton(ctx, state, input, "Pass", SCREEN_WIDTH * 0.5, 500, 10)
     ) {
-      //checkGameOver(state, state.playerTwoHand);
       acceptBouts(state, state.playerOneHand);
       state.phase = Phase.PHASE_P2_ATTACK;
-      //state.selectedCards.clear();
-      //state.currentAttack = null;
-      //drawCards(state.playerTwoHand, state.deck);
-      //draw cards player 2
     }
   }
 
@@ -436,11 +383,9 @@ export function gameUpdate(
       state.phase === Phase.PHASE_P2_DEFEND
     ) {
       if (UICreateCardButton(ctx, state, input, card, cx, cy)) {
-        //console.log(card);
         performCardAction(state, card);
       }
     } else {
-      //renderCard(ctx, card, cx, cy, "white");
       renderCardBack(ctx, cx, cy);
     }
   }
@@ -521,10 +466,6 @@ export function gameUpdate(
       if (isDefended) {
         discardBouts(state);
         state.phase = Phase.PHASE_P1_ATTACK;
-        //drawCards(state.playerOneHand, state.deck);
-        //state.selectedCards.clear();
-        //state.currentAttack = null;
-        //draw cards player1
       } else {
         state.phase = Phase.PHASE_P1_DEFEND;
       }
@@ -535,12 +476,8 @@ export function gameUpdate(
     if (
       UICreateTextButton(ctx, state, input, "Pass", SCREEN_WIDTH * 0.5, 50, 10)
     ) {
-      //checkGameOver(state, state.playerOneHand);
       acceptBouts(state, state.playerTwoHand);
       state.phase = Phase.PHASE_P1_ATTACK;
-      //drawCards(state.playerOneHand, state.deck);
-      //state.selectedCards.clear();
-      //draw cards player 1
     }
   }
 
@@ -548,8 +485,7 @@ export function gameUpdate(
     renderDeck(ctx, state.deck);
   }
 
-  //state.playerOneHand = removeCardFromHand(state.playerOneHand);
-  performEvent(state);
+  performDiscard(state);
   checkGameOver(state, state.playerOneHand);
   checkGameOver(state, state.playerTwoHand);
 }

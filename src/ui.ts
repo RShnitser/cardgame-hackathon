@@ -1,4 +1,3 @@
-//import { isPointInRect } from "./game";
 import { CARD_HEIGHT, CARD_WIDTH } from "./game_constants";
 import { Card, GameState, Input } from "./game_types";
 import { renderCard, renderButton } from "./renderer";
@@ -57,7 +56,6 @@ export function UICreateCardButton(
     state.hotItem = id;
     if (state.activeItem === 0 && input.action.isDown) {
       state.activeItem = id;
-      //result = true
     }
   }
 
