@@ -1,5 +1,5 @@
 #gameover {
-    display: block;
+    display: none;
     position: fixed;
     z-index: 100; 
     left: 8px;
@@ -30,7 +30,7 @@
   }
 
   .menu-title{
-    font-size: 48px;
+    font-size: 72px;
     color: white;
   }
 
@@ -42,7 +42,7 @@
     padding: 5px;
     text-decoration: none;
     background-color: lightgray;
-    font-size: 18px;
+    font-size: 48px;
     color: black;
   }
 
