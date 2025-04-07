@@ -5,6 +5,7 @@ The card game Durak built using HTML/CSS and Typescript.
 
 ## Installing
 
+Requires node and git to be installed<br>
 Clone the git repository<br>
 
     git clone git@github.com:RShnitser/cardgame-hackathon.git
