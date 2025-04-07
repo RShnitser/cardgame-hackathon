@@ -1,4 +1,4 @@
-import { gameUpdate, gameInitialize } from "./game";
+import { gameUpdate, gameInitialize, resetGame } from "./game";
 import { Suit, Phase } from "./game_constants";
 import { GameState, Input, Button } from "./game_types";
 import { renderClear } from "./renderer";
@@ -7,7 +7,9 @@ import { UIEnd, UIStart } from "./ui";
 //global variables
 const canvas = document.getElementById("gameCanvas") as HTMLCanvasElement;
 const ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
-//let prevTime = 0;
+const gameOverModal = document.getElementById("gameover") as HTMLElement;
+const gameOverButton = document.getElementById("gameoverbutton") as HTMLElement;
+
 const state: GameState = {
   gameOver: false,
   deck: [],
@@ -18,7 +20,6 @@ const state: GameState = {
   currentAttack: null,
   bout: [],
   selectedCards: new Set(),
-  //log: [],
   events: [],
 
   idCounter: 0,
@@ -34,6 +35,17 @@ const input: Input = {
     isChanged: false,
   },
 };
+
+gameOverButton.addEventListener("click", gameOverOnClick);
+
+function gameOverOnClick() {
+  gameOverModal.style.display = "none";
+  resetGame(state);
+}
+
+export function displayGameOver() {
+  gameOverModal.style.display = "block";
+}
 
 function processInputState(button: Button, isDown: boolean) {
   if (button.isDown !== isDown) {
@@ -63,14 +75,9 @@ function handleMouseMove(e: MouseEvent) {
   if (canvas !== null) {
     const rect = canvas.getBoundingClientRect();
     input.mouseX = e.clientX - rect.left;
-    //input.mouseY = SCREEN_HEIGHT - (e.clientY - rect.top);
     input.mouseY = e.clientY - rect.top;
   }
 }
-
-// function log(state: GameState, message: string) {
-//   state.log.push(message);
-// }
 
 function main() {
   window.addEventListener("mousedown", handleMouseDown);
@@ -85,15 +92,13 @@ function main() {
 }
 
 function update() {
-  //const now = performance.now();
-  //const deltaTime = (now - prevTime) * 0.001;
-
   renderClear(ctx, canvas.width, canvas.height, "grey");
   UIStart(state);
-  gameUpdate(ctx, state, input);
+  if (!state.gameOver) {
+    gameUpdate(ctx, state, input);
+  }
   UIEnd(state, input);
 
-  //prevTime = now;
   window.requestAnimationFrame(update);
 }
 

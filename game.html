@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Durak</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div>
+      <canvas
+        id="gameCanvas"
+        width="800"
+        height="600"
+        style="border: 1px solid"
+      ></canvas>
+      <div id="gameover">
+        <div class="flex">
+          <div class="gameover-title">Game Over</div>
+          <input id="gameoverbutton" type="button" value="Play Again" />
+        </div>
+      </div>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

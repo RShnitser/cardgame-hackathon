@@ -1,0 +1,23 @@
+#gameover {
+    display: none;
+    position: fixed;
+    z-index: 100; 
+    left: 8px;
+    top: 8px;
+    width: 800px; 
+    height: 600px;
+    background-color: rgba(0,0,0,0.4);
+  }
+
+  #gameover .flex{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+  }
+
+  .gameover-title{
+    font-size: 48px;
+    color: gold;
+  }

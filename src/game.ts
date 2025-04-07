@@ -14,6 +14,14 @@ import {
   renderSelectRect,
 } from "./renderer";
 import { UICreateCardButton, UICreateTextButton } from "./ui";
+import { displayGameOver } from "./main";
+
+function compareCard(a: Card, b: Card) {
+  if (a.suit === b.suit) {
+    return a.rank - b.rank;
+  }
+  return a.suit - b.suit;
+}
 
 function createDeck() {
   const result: Card[] = [];
@@ -51,6 +59,13 @@ function createDeck() {
 //   return result;
 // }
 
+export function resetGame(state: GameState) {
+  state.gameOver = false;
+  state.selectedCards.clear();
+  state.events = [];
+  dealCards(state);
+}
+
 function drawCards(hand: Card[], deck: Card[]) {
   if (hand.length >= 6) {
     return;
@@ -62,6 +77,7 @@ function drawCards(hand: Card[], deck: Card[]) {
       hand.push(card);
     }
   }
+  hand.sort(compareCard);
 }
 
 function shouldReshuffleDeck(hand: Card[]) {
@@ -203,8 +219,10 @@ function removeCardFromHand(hand: Card[], card: Card) {
 }
 
 function checkGameOver(state: GameState, hand: Card[]) {
+  //console.log("deck: ", state.deck.length, " hand: ", hand.length);
   if (state.deck.length === 0 && hand.length === 0) {
     state.gameOver = true;
+    displayGameOver();
   }
 }
 
@@ -254,7 +272,7 @@ function performCardAction(state: GameState, card: Card) {
       break;
     case Phase.PHASE_P2_DEFEND:
       if (defend(state, card, state.playerTwoHand)) {
-        checkGameOver(state, state.playerTwoHand);
+        //checkGameOver(state, state.playerTwoHand);
         if (!state.gameOver && isDefended(state)) {
           state.phase = Phase.PHASE_P1_ATTACK;
         }
@@ -269,7 +287,7 @@ function performCardAction(state: GameState, card: Card) {
       break;
     case Phase.PHASE_P1_DEFEND:
       if (defend(state, card, state.playerOneHand)) {
-        checkGameOver(state, state.playerOneHand);
+        //checkGameOver(state, state.playerOneHand);
         if (!state.gameOver && isDefended(state)) {
           state.phase = Phase.PHASE_P2_ATTACK;
         }
@@ -394,6 +412,7 @@ export function gameUpdate(
     if (
       UICreateTextButton(ctx, state, input, "Pass", SCREEN_WIDTH * 0.5, 500, 10)
     ) {
+      //checkGameOver(state, state.playerTwoHand);
       acceptBouts(state, state.playerOneHand);
       state.phase = Phase.PHASE_P2_ATTACK;
       //state.selectedCards.clear();
@@ -516,6 +535,7 @@ export function gameUpdate(
     if (
       UICreateTextButton(ctx, state, input, "Pass", SCREEN_WIDTH * 0.5, 50, 10)
     ) {
+      //checkGameOver(state, state.playerOneHand);
       acceptBouts(state, state.playerTwoHand);
       state.phase = Phase.PHASE_P1_ATTACK;
       //drawCards(state.playerOneHand, state.deck);
@@ -530,4 +550,6 @@ export function gameUpdate(
 
   //state.playerOneHand = removeCardFromHand(state.playerOneHand);
   performEvent(state);
+  checkGameOver(state, state.playerOneHand);
+  checkGameOver(state, state.playerTwoHand);
 }
